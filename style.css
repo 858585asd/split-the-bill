@@ -318,6 +318,107 @@ body {
 .history-date   { color: var(--text-sub); white-space: nowrap; }
 .history-amount { font-weight: 600; margin-left: auto; white-space: nowrap; }
 
+/* ── 出遊列表 ── */
+.trips-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1.25rem 1rem .75rem;
+  max-width: 600px;
+  margin: 0 auto;
+}
+.trips-header h1 { font-size: 1.6rem; }
+
+#create-trip-form,
+#recent-trips-section,
+.join-section {
+  max-width: 600px;
+  margin: 0 auto;
+  padding: 0 1rem;
+}
+
+#recent-trips-section { margin-top: .5rem; }
+
+.trip-card {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: .9rem 1rem;
+  margin-bottom: .6rem;
+  cursor: pointer;
+  transition: border-color .15s;
+}
+.trip-card:hover { border-color: var(--primary); }
+.trip-card-info  { display: flex; flex-direction: column; gap: .2rem; }
+.trip-card-name  { font-weight: 600; font-size: .95rem; }
+.trip-card-code  { font-size: .78rem; color: var(--text-sub); }
+
+.join-section {
+  margin-top: 1.5rem;
+  padding-top: 1.25rem;
+  border-top: 1px solid var(--border);
+}
+.join-hint { font-size: .875rem; color: var(--text-sub); margin-bottom: .5rem; }
+
+/* 代碼輸入自動大寫 */
+#join-code-input { text-transform: uppercase; letter-spacing: .1em; }
+
+/* ── Navbar（出遊詳情頁） ── */
+.tab-bar {
+  display: flex;
+  gap: .25rem;
+  padding: .4rem .75rem;
+  background: var(--card);
+  border-bottom: 1px solid var(--border);
+  overflow-x: auto;
+}
+
+/* ── Toast 提示 ── */
+.toast {
+  position: fixed;
+  bottom: 1.5rem;
+  left: 50%;
+  transform: translateX(-50%);
+  background: #1e293b;
+  color: #fff;
+  padding: .65rem 1.25rem;
+  border-radius: 999px;
+  font-size: .875rem;
+  white-space: nowrap;
+  z-index: 999;
+  box-shadow: 0 4px 16px rgba(0,0,0,.2);
+}
+
+/* ── 中央卡片（設定頁 / 新增出遊） ── */
+.center-card {
+  max-width: 540px;
+  margin: 2rem auto;
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 1.75rem;
+  box-shadow: 0 4px 24px rgba(0,0,0,.06);
+}
+.center-card h1 { font-size: 1.8rem; margin-bottom: .25rem; }
+.center-card h2 { font-size: 1.2rem; margin-bottom: 1rem; }
+
+.btn-row { display: flex; gap: .5rem; margin-top: .75rem; }
+
+/* ── 返回按鈕 ── */
+.btn-back {
+  background: none;
+  border: none;
+  font-size: .9rem;
+  color: var(--text-sub);
+  cursor: pointer;
+  padding: .4rem .5rem;
+  white-space: nowrap;
+}
+.btn-back:hover { color: var(--text); }
+
 /* ── 手機優化 ── */
 @media (max-width: 480px) {
   .navbar { padding: .5rem .75rem; }

@@ -1,93 +1,203 @@
-// 分帳 App — 主邏輯
+// 分帳 App — 主邏輯（Firebase 版）
 
-const GAS_URL_KEY = 'stb_gas_url';
-let gasUrl = null;
-let members = [];
+const RECENT_TRIPS_KEY = 'stb_recent_trips'; // localStorage: [{code, name}]
+let currentTripCode = null;
+let currentTripName = '';
+let members = []; // [{id, name}]
 
 // ── 工具函式 ────────────────────────────────────────────────
 
 function $(id) { return document.getElementById(id); }
-
 function show(id) { $(id).classList.remove('hidden'); }
 function hide(id) { $(id).classList.add('hidden'); }
-
-function setError(id, msg) {
-  const el = $(id);
-  el.textContent = msg;
-  el.classList.remove('hidden');
-}
-function clearError(id) {
-  $(id).textContent = '';
-  $(id).classList.add('hidden');
+function setError(id, msg) { const el=$(id); el.textContent=msg; el.classList.remove('hidden'); }
+function clearError(id) { const el=$(id); el.textContent=''; el.classList.add('hidden'); }
+function formatMoney(n) { return '$' + parseFloat(n).toFixed(0); }
+function todayStr() { return new Date().toLocaleDateString('zh-TW', {year:'numeric',month:'2-digit',day:'2-digit'}); }
+function escHtml(str) {
+  return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
 }
 
-function formatMoney(n) {
-  return '$' + parseFloat(n).toFixed(0);
-}
-
-function todayStr() {
-  return new Date().toLocaleDateString('zh-TW', { year: 'numeric', month: '2-digit', day: '2-digit' });
-}
-
-// ── 初始化 ──────────────────────────────────────────────────
+// ── 啟動 ─────────────────────────────────────────────────────
 
 document.addEventListener('DOMContentLoaded', () => {
-  const saved = localStorage.getItem(GAS_URL_KEY);
-  if (saved) {
-    gasUrl = saved;
-    showMainUI();
-  } else {
-    showSetupScreen();
-  }
-});
-
-// ── 設定畫面 ────────────────────────────────────────────────
-
-function showSetupScreen() {
-  show('setup-screen');
-  hide('main-ui');
-}
-
-function showMainUI() {
-  hide('setup-screen');
-  show('main-ui');
-  loadMembers();
-  switchTab('expenses');
-}
-
-$('setup-save-btn').addEventListener('click', async () => {
-  const url = $('gas-url-input').value.trim();
-  clearError('setup-error');
-
-  if (!url) {
-    setError('setup-error', '請輸入 GAS 網址');
+  // 檢查 Firebase 是否已設定
+  if (!firebase.apps.length || firebase.app().options.projectId === 'YOUR_PROJECT_ID') {
+    show('screen-config');
     return;
   }
 
-  const btn = $('setup-save-btn');
-  btn.textContent = '測試中…';
-  btn.disabled = true;
-
-  try {
-    await api.ping(url);
-    gasUrl = url;
-    localStorage.setItem(GAS_URL_KEY, url);
-    showMainUI();
-  } catch (err) {
-    setError('setup-error', '連線失敗：' + err.message);
-  } finally {
-    btn.textContent = '測試並儲存';
-    btn.disabled = false;
+  // 從 URL hash 直接進入出遊
+  const hash = location.hash.replace('#', '').trim().toUpperCase();
+  if (hash.length === 6) {
+    enterTrip(hash);
+  } else {
+    showTripList();
   }
 });
 
-$('reset-url-btn').addEventListener('click', () => {
-  if (!confirm('確定要重設 GAS 連結嗎？')) return;
-  localStorage.removeItem(GAS_URL_KEY);
-  gasUrl = null;
-  members = [];
-  showSetupScreen();
+// ── 出遊列表 ─────────────────────────────────────────────────
+
+function showTripList() {
+  hide('screen-config');
+  hide('screen-trip');
+  show('screen-trips');
+  hide('create-trip-form');
+  renderRecentTrips();
+}
+
+function getRecentTrips() {
+  try { return JSON.parse(localStorage.getItem(RECENT_TRIPS_KEY)) || []; }
+  catch { return []; }
+}
+
+function saveRecentTrip(code, name) {
+  const trips = getRecentTrips().filter(t => t.code !== code);
+  trips.unshift({ code, name });
+  localStorage.setItem(RECENT_TRIPS_KEY, JSON.stringify(trips.slice(0, 20)));
+}
+
+function renderRecentTrips() {
+  const trips = getRecentTrips();
+  hide('trips-loading');
+  const list = $('trips-list');
+  list.innerHTML = '';
+
+  if (trips.length === 0) {
+    show('trips-empty');
+    return;
+  }
+  hide('trips-empty');
+
+  trips.forEach(t => {
+    const card = document.createElement('div');
+    card.className = 'trip-card';
+    card.innerHTML = `
+      <div class="trip-card-info">
+        <span class="trip-card-name">${escHtml(t.name)}</span>
+        <span class="trip-card-code">代碼：${escHtml(t.code)}</span>
+      </div>
+      <button class="btn btn-primary btn-sm">進入</button>
+    `;
+    card.querySelector('button').addEventListener('click', () => enterTrip(t.code));
+    list.appendChild(card);
+  });
+}
+
+// 新增出遊
+$('create-trip-btn').addEventListener('click', () => {
+  hide('trips-list');
+  hide('recent-trips-section');
+  show('create-trip-form');
+  $('trip-name-input').focus();
 });
+
+$('cancel-create-btn').addEventListener('click', () => {
+  hide('create-trip-form');
+  show('recent-trips-section');
+  $('trip-name-input').value = '';
+  clearError('create-trip-error');
+});
+
+$('confirm-create-btn').addEventListener('click', async () => {
+  const name = $('trip-name-input').value.trim();
+  clearError('create-trip-error');
+  if (!name) { setError('create-trip-error', '請輸入出遊名稱'); return; }
+
+  const btn = $('confirm-create-btn');
+  btn.disabled = true;
+  btn.textContent = '建立中…';
+
+  try {
+    const code = await dbOps.createTrip(name);
+    saveRecentTrip(code, name);
+    enterTrip(code);
+  } catch (err) {
+    setError('create-trip-error', '建立失敗：' + err.message);
+    btn.disabled = false;
+    btn.textContent = '建立';
+  }
+});
+
+$('trip-name-input').addEventListener('keydown', e => { if (e.key === 'Enter') $('confirm-create-btn').click(); });
+
+// 加入出遊（輸入代碼）
+$('join-trip-btn').addEventListener('click', async () => {
+  const code = $('join-code-input').value.trim().toUpperCase();
+  clearError('join-error');
+  if (code.length !== 6) { setError('join-error', '代碼應為 6 碼'); return; }
+
+  const btn = $('join-trip-btn');
+  btn.disabled = true;
+  btn.textContent = '查詢中…';
+
+  try {
+    const trip = await dbOps.getTrip(code);
+    if (!trip) { setError('join-error', '找不到此出遊代碼'); return; }
+    saveRecentTrip(code, trip.name);
+    enterTrip(code);
+  } catch (err) {
+    setError('join-error', '查詢失敗：' + err.message);
+  } finally {
+    btn.disabled = false;
+    btn.textContent = '加入';
+  }
+});
+
+$('join-code-input').addEventListener('keydown', e => { if (e.key === 'Enter') $('join-trip-btn').click(); });
+
+// ── 進入出遊 ─────────────────────────────────────────────────
+
+async function enterTrip(code) {
+  try {
+    const trip = await dbOps.getTrip(code);
+    if (!trip) {
+      alert('找不到出遊代碼：' + code);
+      showTripList();
+      return;
+    }
+    currentTripCode = code;
+    currentTripName = trip.name;
+    location.hash = code;
+    saveRecentTrip(code, trip.name);
+
+    hide('screen-trips');
+    show('screen-trip');
+    $('trip-name-display').textContent = trip.name;
+
+    await loadMembers();
+    switchTab('expenses');
+  } catch (err) {
+    alert('載入失敗：' + err.message);
+    showTripList();
+  }
+}
+
+// 返回列表
+$('back-btn').addEventListener('click', () => {
+  currentTripCode = null;
+  currentTripName = '';
+  members = [];
+  location.hash = '';
+  showTripList();
+});
+
+// 分享
+$('share-btn').addEventListener('click', () => {
+  const url = location.origin + location.pathname + '#' + currentTripCode;
+  navigator.clipboard.writeText(url).then(() => {
+    showToast('已複製分享連結！朋友打開連結就能直接加入');
+  }).catch(() => {
+    showToast('出遊代碼：' + currentTripCode);
+  });
+});
+
+function showToast(msg) {
+  const toast = $('share-toast');
+  toast.textContent = msg;
+  toast.classList.remove('hidden');
+  setTimeout(() => toast.classList.add('hidden'), 3000);
+}
 
 // ── Tab 切換 ─────────────────────────────────────────────────
 
@@ -98,7 +208,6 @@ document.querySelectorAll('.nav-tab').forEach(btn => {
 function switchTab(tab) {
   document.querySelectorAll('.nav-tab').forEach(b => b.classList.remove('active'));
   document.querySelector(`.nav-tab[data-tab="${tab}"]`).classList.add('active');
-
   document.querySelectorAll('.tab-panel').forEach(p => p.classList.add('hidden'));
   $(`tab-${tab}`).classList.remove('hidden');
 
@@ -112,11 +221,8 @@ function switchTab(tab) {
 
 async function loadMembers() {
   try {
-    const res = await api.getMembers(gasUrl);
-    members = res.members || [];
-  } catch (err) {
-    members = [];
-  }
+    members = await dbOps.getMembers(currentTripCode);
+  } catch { members = []; }
 }
 
 function renderMembersList() {
@@ -129,14 +235,14 @@ function renderMembersList() {
     return;
   }
 
-  members.forEach(name => {
+  members.forEach(m => {
     const row = document.createElement('div');
     row.className = 'member-row';
     row.innerHTML = `
-      <span class="member-name">${escHtml(name)}</span>
-      <button class="btn btn-danger btn-sm" data-name="${escHtml(name)}">刪除</button>
+      <span class="member-name">${escHtml(m.name)}</span>
+      <button class="btn btn-danger btn-sm">刪除</button>
     `;
-    row.querySelector('button').addEventListener('click', () => deleteMember(name));
+    row.querySelector('button').addEventListener('click', () => deleteMember(m.id, m.name));
     container.appendChild(row);
   });
 }
@@ -145,17 +251,12 @@ $('add-member-btn').addEventListener('click', async () => {
   const input = $('new-member-input');
   const name = input.value.trim();
   clearError('members-error');
-
-  if (!name) {
-    setError('members-error', '請輸入姓名');
-    return;
-  }
+  if (!name) { setError('members-error', '請輸入姓名'); return; }
 
   const btn = $('add-member-btn');
   btn.disabled = true;
-
   try {
-    await api.addMember(gasUrl, name);
+    await dbOps.addMember(currentTripCode, name);
     input.value = '';
     await loadMembers();
     renderMembersList();
@@ -163,20 +264,15 @@ $('add-member-btn').addEventListener('click', async () => {
     renderSplitsTable();
   } catch (err) {
     setError('members-error', '新增失敗：' + err.message);
-  } finally {
-    btn.disabled = false;
-  }
+  } finally { btn.disabled = false; }
 });
 
-$('new-member-input').addEventListener('keydown', e => {
-  if (e.key === 'Enter') $('add-member-btn').click();
-});
+$('new-member-input').addEventListener('keydown', e => { if (e.key === 'Enter') $('add-member-btn').click(); });
 
-async function deleteMember(name) {
+async function deleteMember(id, name) {
   if (!confirm(`確定要刪除成員「${name}」嗎？`)) return;
-
   try {
-    await api.deleteMember(gasUrl, name);
+    await dbOps.deleteMember(currentTripCode, id);
     await loadMembers();
     renderMembersList();
     renderPayerDropdown();
@@ -196,25 +292,14 @@ async function loadExpenses() {
   $('expenses-list').innerHTML = '';
 
   try {
-    const [expRes, splitRes] = await Promise.all([
-      api.getExpenses(gasUrl),
-      api.getSplits(gasUrl)
-    ]);
-
-    const expenses = expRes.expenses || [];
-    const splits   = splitRes.splits   || [];
+    const expenses = await dbOps.getExpenses(currentTripCode);
     hide('expenses-loading');
 
-    if (expenses.length === 0) {
-      show('expenses-empty');
-      return;
-    }
+    if (expenses.length === 0) { show('expenses-empty'); return; }
 
-    expenses.sort((a, b) => (b.date > a.date ? 1 : -1));
     const container = $('expenses-list');
-
     expenses.forEach(exp => {
-      const mySplits = splits.filter(s => String(s.expense_id) === String(exp.id));
+      const splits = exp.splits || [];
       const card = document.createElement('div');
       card.className = 'expense-card';
       card.innerHTML = `
@@ -225,19 +310,16 @@ async function loadExpenses() {
           </div>
           <div class="expense-right">
             <span class="expense-total">${formatMoney(exp.total)}</span>
-            <button class="btn btn-danger btn-sm delete-exp-btn" data-id="${escHtml(exp.id)}">刪除</button>
+            <button class="btn btn-danger btn-sm">刪除</button>
           </div>
         </div>
         <div class="expense-splits">
-          ${mySplits.map(s =>
-            `<span class="split-tag">${escHtml(s.person)}: ${formatMoney(s.amount)}</span>`
-          ).join('')}
+          ${splits.map(s => `<span class="split-tag">${escHtml(s.person)}: ${formatMoney(s.amount)}</span>`).join('')}
         </div>
       `;
-      card.querySelector('.delete-exp-btn').addEventListener('click', () => deleteExpense(exp.id));
+      card.querySelector('.btn-danger').addEventListener('click', () => deleteExpense(exp.id));
       container.appendChild(card);
     });
-
   } catch (err) {
     hide('expenses-loading');
     setError('expenses-error', '載入失敗：' + err.message);
@@ -249,7 +331,7 @@ $('refresh-expenses-btn').addEventListener('click', loadExpenses);
 async function deleteExpense(id) {
   if (!confirm('確定要刪除這筆花費嗎？')) return;
   try {
-    await api.deleteExpense(gasUrl, id);
+    await dbOps.deleteExpense(currentTripCode, id);
     await loadExpenses();
   } catch (err) {
     setError('expenses-error', '刪除失敗：' + err.message);
@@ -261,10 +343,10 @@ async function deleteExpense(id) {
 function renderPayerDropdown() {
   const sel = $('exp-payer');
   sel.innerHTML = '<option value="">請選擇付款人</option>';
-  members.forEach(name => {
+  members.forEach(m => {
     const opt = document.createElement('option');
-    opt.value = name;
-    opt.textContent = name;
+    opt.value = m.name;
+    opt.textContent = m.name;
     sel.appendChild(opt);
   });
 }
@@ -278,15 +360,14 @@ function renderSplitsTable() {
     return;
   }
 
-  members.forEach(name => {
+  members.forEach(m => {
     const row = document.createElement('div');
     row.className = 'split-input-row';
     row.innerHTML = `
-      <label class="split-label">${escHtml(name)}</label>
+      <label class="split-label">${escHtml(m.name)}</label>
       <div class="split-input-wrap">
         <span class="currency-sign">$</span>
-        <input type="number" class="split-amount" data-person="${escHtml(name)}"
-               min="0" step="1" placeholder="0" />
+        <input type="number" class="split-amount" data-person="${escHtml(m.name)}" min="0" step="1" placeholder="0" />
       </div>
     `;
     container.appendChild(row);
@@ -299,9 +380,7 @@ function renderSplitsTable() {
 
 function updateSplitsTotal() {
   let total = 0;
-  document.querySelectorAll('.split-amount').forEach(input => {
-    total += parseFloat(input.value) || 0;
-  });
+  document.querySelectorAll('.split-amount').forEach(i => { total += parseFloat(i.value) || 0; });
   $('splits-total').textContent = formatMoney(total);
 }
 
@@ -317,7 +396,6 @@ $('add-expense-form').addEventListener('submit', async (e) => {
 
   const description = $('exp-description').value.trim();
   const payer = $('exp-payer').value;
-
   if (!description) { setError('add-expense-error', '請輸入項目名稱'); return; }
   if (!payer)        { setError('add-expense-error', '請選擇付款人'); return; }
 
@@ -326,26 +404,16 @@ $('add-expense-form').addEventListener('submit', async (e) => {
     const amount = parseFloat(input.value);
     if (amount > 0) splits.push({ person: input.dataset.person, amount: Math.round(amount * 100) / 100 });
   });
-
   if (splits.length === 0) { setError('add-expense-error', '請至少輸入一人的分攤金額'); return; }
 
-  const total = splits.reduce((sum, s) => sum + s.amount, 0);
-
-  const data = {
-    id: crypto.randomUUID(),
-    date: todayStr(),
-    description,
-    payer,
-    total: Math.round(total * 100) / 100,
-    splits
-  };
+  const total = Math.round(splits.reduce((s, x) => s + x.amount, 0) * 100) / 100;
 
   const btn = $('add-expense-btn');
   btn.textContent = '新增中…';
   btn.disabled = true;
 
   try {
-    await api.addExpense(gasUrl, data);
+    await dbOps.addExpense(currentTripCode, { date: todayStr(), description, payer, total, splits });
     $('add-expense-form').reset();
     renderSplitsTable();
     updateSplitsTotal();
@@ -366,25 +434,26 @@ async function loadSettlement() {
   hide('settle-content');
 
   try {
-    const [expRes, splitRes, settleRes] = await Promise.all([
-      api.getExpenses(gasUrl),
-      api.getSplits(gasUrl),
-      api.getSettlements(gasUrl)
+    const [expenses, settlements] = await Promise.all([
+      dbOps.getExpenses(currentTripCode),
+      dbOps.getSettlements(currentTripCode)
     ]);
 
-    const expenses    = expRes.expenses       || [];
-    const splits      = splitRes.splits       || [];
-    const settlements = settleRes.settlements || [];
+    // 把 splits 展開成扁平陣列（原格式與 settlement.js 相容）
+    const splits = [];
+    expenses.forEach(exp => {
+      (exp.splits || []).forEach(s => splits.push({ expense_id: exp.id, person: s.person, amount: s.amount }));
+    });
+
+    const memberNames = members.map(m => m.name);
+    const { net, transactions } = calculateSettlements(memberNames, expenses, splits, settlements);
 
     hide('settle-loading');
     show('settle-content');
 
-    const { net, transactions } = calculateSettlements(members, expenses, splits, settlements);
-
     renderTransactions(transactions);
     renderBalances(net);
     renderSettlementHistory(settlements);
-
   } catch (err) {
     hide('settle-loading');
     setError('settle-error', '載入失敗：' + err.message);
@@ -396,10 +465,7 @@ function renderTransactions(transactions) {
   list.innerHTML = '';
   hide('settle-all-clear');
 
-  if (transactions.length === 0) {
-    show('settle-all-clear');
-    return;
-  }
+  if (transactions.length === 0) { show('settle-all-clear'); return; }
 
   transactions.forEach(tx => {
     const row = document.createElement('div');
@@ -411,26 +477,19 @@ function renderTransactions(transactions) {
         <span class="tx-to">${escHtml(tx.to)}</span>
         <span class="tx-amount">${formatMoney(tx.amount)}</span>
       </div>
-      <button class="btn btn-success btn-sm mark-paid-btn">標記已還款</button>
+      <button class="btn btn-success btn-sm">標記已還款</button>
     `;
-    row.querySelector('.mark-paid-btn').addEventListener('click', () => markAsPaid(tx));
+    row.querySelector('button').addEventListener('click', () => markAsPaid(tx));
     list.appendChild(row);
   });
 }
 
 async function markAsPaid(tx) {
   if (!confirm(`確定 ${tx.from} 已還給 ${tx.to} ${formatMoney(tx.amount)} 嗎？`)) return;
-
-  const data = {
-    id: crypto.randomUUID(),
-    date: todayStr(),
-    from_person: tx.from,
-    to_person: tx.to,
-    amount: tx.amount
-  };
-
   try {
-    await api.addSettlement(gasUrl, data);
+    await dbOps.addSettlement(currentTripCode, {
+      date: todayStr(), from_person: tx.from, to_person: tx.to, amount: tx.amount
+    });
     await loadSettlement();
   } catch (err) {
     setError('settle-error', '記錄失敗：' + err.message);
@@ -440,17 +499,13 @@ async function markAsPaid(tx) {
 function renderBalances(net) {
   const list = $('balance-list');
   list.innerHTML = '';
-
   Object.entries(net).forEach(([name, balance]) => {
     const row = document.createElement('div');
     row.className = 'balance-row';
     const label = balance > 0.005 ? `應收 ${formatMoney(balance)}` :
                   balance < -0.005 ? `應付 ${formatMoney(-balance)}` : '已結清';
     const cls = balance > 0.005 ? 'positive' : balance < -0.005 ? 'negative' : 'zero';
-    row.innerHTML = `
-      <span class="balance-name">${escHtml(name)}</span>
-      <span class="balance-amount ${cls}">${label}</span>
-    `;
+    row.innerHTML = `<span class="balance-name">${escHtml(name)}</span><span class="balance-amount ${cls}">${label}</span>`;
     list.appendChild(row);
   });
 }
@@ -459,14 +514,9 @@ function renderSettlementHistory(settlements) {
   const section = $('settle-history-section');
   const list    = $('settlements-history');
   list.innerHTML = '';
-
-  if (settlements.length === 0) {
-    hide('settle-history-section');
-    return;
-  }
-
+  if (settlements.length === 0) { hide('settle-history-section'); return; }
   show('settle-history-section');
-  [...settlements].reverse().forEach(s => {
+  settlements.forEach(s => {
     const row = document.createElement('div');
     row.className = 'history-row';
     row.innerHTML = `
@@ -479,13 +529,3 @@ function renderSettlementHistory(settlements) {
 }
 
 $('refresh-settle-btn').addEventListener('click', loadSettlement);
-
-// ── 安全工具 ─────────────────────────────────────────────────
-
-function escHtml(str) {
-  return String(str)
-    .replace(/&/g, '&amp;')
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;')
-    .replace(/"/g, '&quot;');
-}
