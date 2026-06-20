@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>分帳 App</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+
+<!-- ── 設定畫面（首次使用） ── -->
+<div id="setup-screen">
+  <div class="setup-card">
+    <h1>💰 分帳 App</h1>
+    <p class="subtitle">請先連結你的 Google Sheets</p>
+
+    <div class="setup-steps">
+      <h3>設定步驟</h3>
+      <ol>
+        <li>開啟 <strong>Google Sheets</strong>，建立一個新試算表</li>
+        <li>點選選單 <strong>擴充功能 &gt; Apps Script</strong></li>
+        <li>刪除原有程式碼，貼上 <code>gas/Code.gs</code> 的內容</li>
+        <li>在 Apps Script 中執行 <strong>initSheets()</strong> 函式（點選執行按鈕），完成工作表初始化</li>
+        <li>點選 <strong>部署 &gt; 新增部署</strong>，類型選「網頁應用程式」</li>
+        <li>執行身分：<strong>我</strong>；存取權：<strong>所有人</strong></li>
+        <li>點選「部署」，授權後複製網址</li>
+        <li>將網址貼到下方欄位</li>
+      </ol>
+    </div>
+
+    <div class="form-group">
+      <label for="gas-url-input">GAS 網址</label>
+      <input type="url" id="gas-url-input" placeholder="https://script.google.com/macros/s/.../exec" />
+    </div>
+    <div id="setup-error" class="error-msg hidden"></div>
+    <button id="setup-save-btn" class="btn btn-primary btn-full">測試並儲存</button>
+  </div>
+</div>
+
+<!-- ── 主介面 ── -->
+<div id="main-ui" class="hidden">
+
+  <!-- 頂部導覽列 -->
+  <nav class="navbar">
+    <span class="nav-title">💰 分帳</span>
+    <div class="nav-tabs">
+      <button class="nav-tab active" data-tab="expenses">帳目明細</button>
+      <button class="nav-tab" data-tab="add">新增花費</button>
+      <button class="nav-tab" data-tab="settle">結算</button>
+      <button class="nav-tab" data-tab="members">成員</button>
+    </div>
+    <button id="reset-url-btn" class="btn-link">重設連結</button>
+  </nav>
+
+  <!-- ── 帳目明細 Tab ── -->
+  <div id="tab-expenses" class="tab-panel">
+    <div class="panel-header">
+      <h2>帳目明細</h2>
+      <button id="refresh-expenses-btn" class="btn btn-ghost">重新整理</button>
+    </div>
+    <div id="expenses-loading" class="loading-msg">載入中…</div>
+    <div id="expenses-error" class="error-msg hidden"></div>
+    <div id="expenses-empty" class="empty-msg hidden">還沒有任何花費記錄</div>
+    <div id="expenses-list"></div>
+  </div>
+
+  <!-- ── 新增花費 Tab ── -->
+  <div id="tab-add" class="tab-panel hidden">
+    <div class="panel-header">
+      <h2>新增花費</h2>
+    </div>
+    <form id="add-expense-form">
+      <div class="form-group">
+        <label for="exp-description">項目名稱</label>
+        <input type="text" id="exp-description" placeholder="例：晚餐、計程車" maxlength="100" required />
+      </div>
+      <div class="form-group">
+        <label for="exp-payer">付款人</label>
+        <select id="exp-payer" required>
+          <option value="">請選擇付款人</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>各人分攤金額（空白表示不參與）</label>
+        <div id="splits-table"></div>
+      </div>
+      <div class="total-row">
+        合計：<span id="splits-total">$0</span>
+      </div>
+      <div id="add-expense-error" class="error-msg hidden"></div>
+      <button type="submit" id="add-expense-btn" class="btn btn-primary btn-full">新增花費</button>
+    </form>
+  </div>
+
+  <!-- ── 結算 Tab ── -->
+  <div id="tab-settle" class="tab-panel hidden">
+    <div class="panel-header">
+      <h2>結算</h2>
+      <button id="refresh-settle-btn" class="btn btn-ghost">重新整理</button>
+    </div>
+    <div id="settle-loading" class="loading-msg">計算中…</div>
+    <div id="settle-error" class="error-msg hidden"></div>
+    <div id="settle-content" class="hidden">
+      <div id="settle-all-clear" class="success-msg hidden">🎉 所有帳款已結清！</div>
+      <div id="transactions-list"></div>
+
+      <details id="settle-history-section" class="history-section hidden">
+        <summary>還款紀錄</summary>
+        <div id="settlements-history"></div>
+      </details>
+
+      <details id="balance-section" class="history-section">
+        <summary>各人餘額明細</summary>
+        <div id="balance-list"></div>
+      </details>
+    </div>
+  </div>
+
+  <!-- ── 成員 Tab ── -->
+  <div id="tab-members" class="tab-panel hidden">
+    <div class="panel-header">
+      <h2>成員管理</h2>
+    </div>
+    <div class="form-group inline-form">
+      <input type="text" id="new-member-input" placeholder="輸入姓名" maxlength="30" />
+      <button id="add-member-btn" class="btn btn-primary">新增</button>
+    </div>
+    <div id="members-error" class="error-msg hidden"></div>
+    <div id="members-loading" class="loading-msg hidden">載入中…</div>
+    <div id="members-list"></div>
+  </div>
+
+</div>
+
+<script src="js/api.js"></script>
+<script src="js/settlement.js"></script>
+<script src="js/app.js"></script>
+</body>
+</html>

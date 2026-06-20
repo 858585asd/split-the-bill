@@ -1,0 +1,8 @@
+{
+  "permissions": {
+    "allow": [
+      "PowerShell(New-Item -ItemType Directory -Path \"d:\\\\ClaudeAI\\\\split the bill\\\\gas\" -Force)",
+      "PowerShell(New-Item -ItemType Directory -Path \"d:\\\\ClaudeAI\\\\split the bill\\\\js\" -Force)"
+    ]
+  }
+}
