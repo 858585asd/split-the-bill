@@ -97,6 +97,7 @@ $('cancel-create-btn').addEventListener('click', () => {
   show('recent-trips-section');
   $('trip-name-input').value = '';
   clearError('create-trip-error');
+  renderRecentTrips();
 });
 
 $('confirm-create-btn').addEventListener('click', async () => {
@@ -387,8 +388,26 @@ function updateSplitsTotal() {
 function renderAddExpenseForm() {
   renderPayerDropdown();
   renderSplitsTable();
+  $('exp-total').value = '';
   updateSplitsTotal();
 }
+
+// 一鍵平分
+$('split-evenly-btn').addEventListener('click', () => {
+  const total = parseFloat($('exp-total').value);
+  clearError('add-expense-error');
+  if (!total || total <= 0) { setError('add-expense-error', '請先輸入總金額'); return; }
+  if (members.length === 0) { setError('add-expense-error', '請先新增成員'); return; }
+
+  const n = members.length;
+  const baseCents = Math.floor(total * 100 / n);
+  const remainder = Math.round(total * 100) - baseCents * n;
+
+  document.querySelectorAll('.split-amount').forEach((input, i) => {
+    input.value = ((i < remainder ? baseCents + 1 : baseCents) / 100).toFixed(0);
+  });
+  updateSplitsTotal();
+});
 
 $('add-expense-form').addEventListener('submit', async (e) => {
   e.preventDefault();
@@ -396,8 +415,11 @@ $('add-expense-form').addEventListener('submit', async (e) => {
 
   const description = $('exp-description').value.trim();
   const payer = $('exp-payer').value;
+  const total = parseFloat($('exp-total').value);
+
   if (!description) { setError('add-expense-error', '請輸入項目名稱'); return; }
   if (!payer)        { setError('add-expense-error', '請選擇付款人'); return; }
+  if (!total || total <= 0) { setError('add-expense-error', '請輸入總金額'); return; }
 
   const splits = [];
   document.querySelectorAll('.split-amount').forEach(input => {
@@ -406,7 +428,12 @@ $('add-expense-form').addEventListener('submit', async (e) => {
   });
   if (splits.length === 0) { setError('add-expense-error', '請至少輸入一人的分攤金額'); return; }
 
-  const total = Math.round(splits.reduce((s, x) => s + x.amount, 0) * 100) / 100;
+  const splitsSum = Math.round(splits.reduce((s, x) => s + x.amount, 0) * 100) / 100;
+  const totalRounded = Math.round(total * 100) / 100;
+  if (Math.abs(splitsSum - totalRounded) > 0.01) {
+    setError('add-expense-error', `各人合計 ${formatMoney(splitsSum)} 與總金額 ${formatMoney(totalRounded)} 不符，請確認金額`);
+    return;
+  }
 
   const btn = $('add-expense-btn');
   btn.textContent = '新增中…';

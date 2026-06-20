@@ -114,10 +114,20 @@
         </select>
       </div>
       <div class="form-group">
+        <label for="exp-total">總金額</label>
+        <div class="total-input-row">
+          <div class="split-input-wrap">
+            <span class="currency-sign">$</span>
+            <input type="number" id="exp-total" placeholder="0" min="0" step="1" />
+          </div>
+          <button type="button" id="split-evenly-btn" class="btn btn-ghost">一鍵平分</button>
+        </div>
+      </div>
+      <div class="form-group">
         <label>各人分攤金額（空白表示不參與）</label>
         <div id="splits-table"></div>
       </div>
-      <div class="total-row">合計：<span id="splits-total">$0</span></div>
+      <div class="total-row">各人合計：<span id="splits-total">$0</span></div>
       <div id="add-expense-error" class="error-msg hidden"></div>
       <button type="submit" id="add-expense-btn" class="btn btn-primary btn-full">新增花費</button>
     </form>

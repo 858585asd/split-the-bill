@@ -205,6 +205,14 @@ body {
 }
 .split-amount:focus { outline: none; }
 
+.total-input-row {
+  display: flex;
+  gap: .5rem;
+  align-items: center;
+}
+.total-input-row .split-input-wrap { flex: 1; }
+.total-input-row .split-input-wrap input { width: 100%; }
+
 .total-row {
   text-align: right;
   font-size: .95rem;
