@@ -168,8 +168,9 @@ body {
 .form-group input:focus,
 .form-group select:focus { border-color: var(--primary); }
 
-.inline-form { display: flex; gap: .5rem; align-items: flex-end; }
+.inline-form { display: flex; gap: .5rem; align-items: stretch; }
 .inline-form input { flex: 1; margin-bottom: 0; }
+.inline-form .btn { align-self: stretch; }
 
 /* ── 分攤表格 ── */
 .split-input-row {

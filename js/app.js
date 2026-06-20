@@ -550,9 +550,21 @@ function renderSettlementHistory(settlements) {
       <span class="history-date">${escHtml(s.date)}</span>
       <span>${escHtml(s.from_person)} → ${escHtml(s.to_person)}</span>
       <span class="history-amount">${formatMoney(s.amount)}</span>
+      <button class="btn btn-danger btn-sm">刪除</button>
     `;
+    row.querySelector('button').addEventListener('click', () => deleteSettlement(s.id));
     list.appendChild(row);
   });
+}
+
+async function deleteSettlement(id) {
+  if (!confirm('確定要刪除這筆還款紀錄嗎？')) return;
+  try {
+    await dbOps.deleteSettlement(currentTripCode, id);
+    await loadSettlement();
+  } catch (err) {
+    setError('settle-error', '刪除失敗：' + err.message);
+  }
 }
 
 $('refresh-settle-btn').addEventListener('click', loadSettlement);

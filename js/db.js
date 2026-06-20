@@ -96,5 +96,9 @@ const dbOps = {
       amount: data.amount,
       createdAt: firebase.firestore.FieldValue.serverTimestamp()
     });
+  },
+
+  async deleteSettlement(tripCode, settlementId) {
+    await settlementsCol(tripCode).doc(settlementId).delete();
   }
 };
