@@ -458,6 +458,50 @@ body {
   box-shadow: 0 6px 20px rgba(93,115,126,.35);
 }
 
+/* ── 自訂確認框 ── */
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(93, 115, 126, 0.4);
+  backdrop-filter: blur(3px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 500;
+  padding: 1.5rem;
+}
+
+.modal-card {
+  background: var(--card);
+  border: 2px solid var(--border);
+  border-radius: var(--radius);
+  padding: 1.75rem 1.5rem 1.25rem;
+  width: 100%;
+  max-width: 340px;
+  box-shadow: var(--shadow-lg);
+  text-align: center;
+  animation: modal-pop .18s ease;
+}
+
+@keyframes modal-pop {
+  from { transform: scale(.92); opacity: 0; }
+  to   { transform: scale(1);   opacity: 1; }
+}
+
+#confirm-message {
+  font-size: .95rem;
+  color: var(--text);
+  line-height: 1.6;
+  margin-bottom: 1.4rem;
+}
+
+.modal-btns {
+  display: flex;
+  gap: .6rem;
+  justify-content: center;
+}
+.modal-btns .btn { min-width: 90px; }
+
 /* ── 手機優化 ── */
 @media (max-width: 480px) {
   .navbar { padding: .5rem .75rem; }

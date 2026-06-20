@@ -18,6 +18,28 @@ function escHtml(str) {
   return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
 }
 
+// ── 自訂確認框 ───────────────────────────────────────────────
+
+function customConfirm(message, { okText = '確定', danger = false } = {}) {
+  return new Promise(resolve => {
+    $('confirm-message').textContent = message;
+    const okBtn = $('confirm-ok-btn');
+    okBtn.textContent = okText;
+    okBtn.className = `btn ${danger ? 'btn-danger' : 'btn-primary'}`;
+    show('confirm-modal');
+
+    const cleanup = () => {
+      okBtn.removeEventListener('click', onOk);
+      $('confirm-cancel-btn').removeEventListener('click', onCancel);
+    };
+    const onOk = () => { hide('confirm-modal'); cleanup(); resolve(true); };
+    const onCancel = () => { hide('confirm-modal'); cleanup(); resolve(false); };
+
+    okBtn.addEventListener('click', onOk);
+    $('confirm-cancel-btn').addEventListener('click', onCancel);
+  });
+}
+
 // ── 啟動 ─────────────────────────────────────────────────────
 
 document.addEventListener('DOMContentLoaded', () => {
@@ -271,7 +293,7 @@ $('add-member-btn').addEventListener('click', async () => {
 $('new-member-input').addEventListener('keydown', e => { if (e.key === 'Enter') $('add-member-btn').click(); });
 
 async function deleteMember(id, name) {
-  if (!confirm(`確定要刪除成員「${name}」嗎？`)) return;
+  if (!await customConfirm(`確定要刪除成員「${name}」嗎？`, { okText: '刪除', danger: true })) return;
   try {
     await dbOps.deleteMember(currentTripCode, id);
     await loadMembers();
@@ -330,7 +352,7 @@ async function loadExpenses() {
 $('refresh-expenses-btn').addEventListener('click', loadExpenses);
 
 async function deleteExpense(id) {
-  if (!confirm('確定要刪除這筆花費嗎？')) return;
+  if (!await customConfirm('確定要刪除這筆花費嗎？', { okText: '刪除', danger: true })) return;
   try {
     await dbOps.deleteExpense(currentTripCode, id);
     await loadExpenses();
@@ -512,7 +534,7 @@ function renderTransactions(transactions) {
 }
 
 async function markAsPaid(tx) {
-  if (!confirm(`確定 ${tx.from} 已還給 ${tx.to} ${formatMoney(tx.amount)} 嗎？`)) return;
+  if (!await customConfirm(`確定 ${tx.from} 已還給 ${tx.to} ${formatMoney(tx.amount)} 嗎？`)) return;
   try {
     await dbOps.addSettlement(currentTripCode, {
       date: todayStr(), from_person: tx.from, to_person: tx.to, amount: tx.amount
@@ -558,7 +580,7 @@ function renderSettlementHistory(settlements) {
 }
 
 async function deleteSettlement(id) {
-  if (!confirm('確定要刪除這筆還款紀錄嗎？')) return;
+  if (!await customConfirm('確定要刪除這筆還款紀錄嗎？', { okText: '刪除', danger: true })) return;
   try {
     await dbOps.deleteSettlement(currentTripCode, id);
     await loadSettlement();
