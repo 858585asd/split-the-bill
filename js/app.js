@@ -165,9 +165,11 @@ $('confirm-create-btn').addEventListener('click', async () => {
   try {
     const code = await dbOps.createTrip(name);
     dbOps.saveUserTrip(currentUser.uid, code, name);
+    $('trip-name-input').value = '';
     enterTrip(code);
   } catch (err) {
     setError('create-trip-error', '建立失敗：' + err.message);
+  } finally {
     btn.disabled = false;
     btn.textContent = '建立';
   }
@@ -374,13 +376,13 @@ function renderExpensesMembersBar() {
 }
 
 async function loadExpenses() {
-  await loadMembers();
-  renderExpensesMembersBar();
   $('expenses-loading').textContent = '載入中…';
   show('expenses-loading');
   hide('expenses-error');
   hide('expenses-empty');
   $('expenses-list').innerHTML = '';
+  await loadMembers();
+  renderExpensesMembersBar();
 
   try {
     const expenses = await dbOps.getExpenses(currentTripCode);
@@ -479,11 +481,11 @@ function updateSplitsTotal() {
 }
 
 async function renderAddExpenseForm() {
+  $('exp-total').value = '';
+  updateSplitsTotal();
   await loadMembers();
   renderPayerDropdown();
   renderSplitsTable();
-  $('exp-total').value = '';
-  updateSplitsTotal();
 }
 
 // 一鍵平分
