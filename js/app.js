@@ -12,6 +12,8 @@ function show(id) { $(id).classList.remove('hidden'); }
 function hide(id) { $(id).classList.add('hidden'); }
 function setError(id, msg) { const el=$(id); el.textContent=msg; el.classList.remove('hidden'); }
 function clearError(id) { const el=$(id); el.textContent=''; el.classList.add('hidden'); }
+function showLoading() { show('loading-overlay'); }
+function hideLoading() { hide('loading-overlay'); }
 function formatMoney(n) { return '$' + parseFloat(n).toFixed(0); }
 function todayStr() { return new Date().toLocaleDateString('zh-TW', {year:'numeric',month:'2-digit',day:'2-digit'}); }
 function escHtml(str) {
@@ -202,9 +204,11 @@ $('join-code-input').addEventListener('keydown', e => { if (e.key === 'Enter') $
 // ── 進入出遊 ─────────────────────────────────────────────────
 
 async function enterTrip(code) {
+  showLoading();
   try {
     const trip = await dbOps.getTrip(code);
     if (!trip) {
+      hideLoading();
       alert('找不到出遊代碼：' + code);
       showTripList();
       return;
@@ -212,7 +216,7 @@ async function enterTrip(code) {
     currentTripCode = code;
     currentTripName = trip.name;
     location.hash = code;
-    dbOps.saveUserTrip(currentUser.uid, code, trip.name);
+    await dbOps.saveUserTrip(currentUser.uid, code, trip.name);
 
     hide('screen-trips');
     show('screen-trip');
@@ -223,6 +227,8 @@ async function enterTrip(code) {
   } catch (err) {
     alert('載入失敗：' + err.message);
     showTripList();
+  } finally {
+    hideLoading();
   }
 }
 
@@ -308,6 +314,7 @@ $('add-member-btn').addEventListener('click', async () => {
 
   const btn = $('add-member-btn');
   btn.disabled = true;
+  showLoading();
   try {
     await dbOps.addMember(currentTripCode, name);
     input.value = '';
@@ -317,13 +324,17 @@ $('add-member-btn').addEventListener('click', async () => {
     renderSplitsTable();
   } catch (err) {
     setError('members-error', '新增失敗：' + err.message);
-  } finally { btn.disabled = false; }
+  } finally {
+    btn.disabled = false;
+    hideLoading();
+  }
 });
 
 $('new-member-input').addEventListener('keydown', e => { if (e.key === 'Enter') $('add-member-btn').click(); });
 
 async function deleteMember(id, name) {
   if (!await customConfirm(`確定要刪除成員「${name}」嗎？`, { okText: '刪除', danger: true })) return;
+  showLoading();
   try {
     await dbOps.deleteMember(currentTripCode, id);
     await loadMembers();
@@ -332,6 +343,8 @@ async function deleteMember(id, name) {
     renderSplitsTable();
   } catch (err) {
     setError('members-error', '刪除失敗：' + err.message);
+  } finally {
+    hideLoading();
   }
 }
 
@@ -407,11 +420,14 @@ $('refresh-expenses-btn').addEventListener('click', loadExpenses);
 
 async function deleteExpense(id) {
   if (!await customConfirm('確定要刪除這筆花費嗎？', { okText: '刪除', danger: true })) return;
+  showLoading();
   try {
     await dbOps.deleteExpense(currentTripCode, id);
     await loadExpenses();
   } catch (err) {
     setError('expenses-error', '刪除失敗：' + err.message);
+  } finally {
+    hideLoading();
   }
 }
 
@@ -514,6 +530,7 @@ $('add-expense-form').addEventListener('submit', async (e) => {
   const btn = $('add-expense-btn');
   btn.textContent = '新增中…';
   btn.disabled = true;
+  showLoading();
 
   try {
     await dbOps.addExpense(currentTripCode, { date: todayStr(), description, payer, total, splits });
@@ -526,6 +543,7 @@ $('add-expense-form').addEventListener('submit', async (e) => {
   } finally {
     btn.textContent = '新增花費';
     btn.disabled = false;
+    hideLoading();
   }
 });
 
@@ -589,6 +607,7 @@ function renderTransactions(transactions) {
 
 async function markAsPaid(tx) {
   if (!await customConfirm(`確定 ${tx.from} 已還給 ${tx.to} ${formatMoney(tx.amount)} 嗎？`)) return;
+  showLoading();
   try {
     await dbOps.addSettlement(currentTripCode, {
       date: todayStr(), from_person: tx.from, to_person: tx.to, amount: tx.amount
@@ -596,6 +615,8 @@ async function markAsPaid(tx) {
     await loadSettlement();
   } catch (err) {
     setError('settle-error', '記錄失敗：' + err.message);
+  } finally {
+    hideLoading();
   }
 }
 
@@ -635,11 +656,14 @@ function renderSettlementHistory(settlements) {
 
 async function deleteSettlement(id) {
   if (!await customConfirm('確定要刪除這筆還款紀錄嗎？', { okText: '刪除', danger: true })) return;
+  showLoading();
   try {
     await dbOps.deleteSettlement(currentTripCode, id);
     await loadSettlement();
   } catch (err) {
     setError('settle-error', '刪除失敗：' + err.message);
+  } finally {
+    hideLoading();
   }
 }
 
@@ -649,11 +673,14 @@ $('refresh-settle-btn').addEventListener('click', loadSettlement);
 
 async function deleteTripFromList(code, name) {
   if (!await customConfirm(`確定要刪除「${name}」嗎？\n此操作將永久刪除所有成員、花費與還款紀錄，且無法復原。`, { okText: '刪除', danger: true })) return;
+  showLoading();
   try {
     await dbOps.deleteTrip(code);
     await dbOps.removeUserTrip(currentUser.uid, code);
     renderRecentTrips();
   } catch (err) {
     alert('刪除失敗：' + err.message);
+  } finally {
+    hideLoading();
   }
 }

@@ -460,6 +460,27 @@ body {
   box-shadow: 0 6px 20px rgba(93,115,126,.35);
 }
 
+/* ── 全域載入遮罩 ── */
+.loading-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(237, 255, 254, 0.82);
+  backdrop-filter: blur(2px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 200;
+}
+.spinner {
+  width: 48px;
+  height: 48px;
+  border: 5px solid var(--accent);
+  border-top-color: var(--primary);
+  border-radius: 50%;
+  animation: spin .7s linear infinite;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+
 /* ── 自訂確認框 ── */
 .modal-overlay {
   position: fixed;
@@ -527,10 +548,12 @@ body {
 .members-bar-empty {
   display: flex;
   align-items: center;
-  justify-content: space-between;
+  justify-content: center;
+  gap: .75rem;
   width: 100%;
   font-size: .875rem;
-  color: var(--text-sub);
+  color: var(--danger-h);
+  font-weight: 600;
 }
 
 /* ── 登入畫面 ── */

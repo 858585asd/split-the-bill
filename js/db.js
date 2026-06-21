@@ -118,14 +118,15 @@ const dbOps = {
 
   // ── 使用者旅遊清單（Firestore，綁定帳號） ─────────────────
   async getUserTrips(uid) {
-    const snap = await userTripsCol(uid).orderBy('joinedAt', 'desc').get();
-    return snap.docs.map(d => ({ code: d.id, name: d.data().name }));
+    const snap = await userTripsCol(uid).get();
+    const trips = snap.docs.map(d => ({ code: d.id, name: d.data().name, joinedAt: d.data().joinedAt || 0 }));
+    return trips.sort((a, b) => b.joinedAt - a.joinedAt);
   },
 
   async saveUserTrip(uid, code, name) {
     await userTripsCol(uid).doc(code).set({
       name,
-      joinedAt: firebase.firestore.FieldValue.serverTimestamp()
+      joinedAt: Date.now()
     });
   },
 
