@@ -462,17 +462,35 @@ function renderSplitsTable() {
     const row = document.createElement('div');
     row.className = 'split-input-row';
     row.innerHTML = `
-      <label class="split-label">${escHtml(m.name)}</label>
-      <div class="split-input-wrap">
-        <span class="currency-sign">$</span>
-        <input type="number" class="split-amount" data-person="${escHtml(m.name)}" min="0" step="1" placeholder="0" />
+      <label class="split-member-label">
+        <input type="checkbox" class="split-checkbox" data-person="${escHtml(m.name)}" />
+        <span class="split-label">${escHtml(m.name)}</span>
+      </label>
+      <div class="split-amount-wrap hidden">
+        <div class="split-input-wrap">
+          <span class="currency-sign">$</span>
+          <input type="number" class="split-amount" data-person="${escHtml(m.name)}" min="0" step="1" placeholder="0" />
+        </div>
       </div>
     `;
-    container.appendChild(row);
-  });
 
-  container.querySelectorAll('.split-amount').forEach(input => {
-    input.addEventListener('input', updateSplitsTotal);
+    const checkbox    = row.querySelector('.split-checkbox');
+    const amountWrap  = row.querySelector('.split-amount-wrap');
+    const amountInput = row.querySelector('.split-amount');
+
+    checkbox.addEventListener('change', () => {
+      if (checkbox.checked) {
+        amountWrap.classList.remove('hidden');
+        amountInput.focus();
+      } else {
+        amountWrap.classList.add('hidden');
+        amountInput.value = '';
+        updateSplitsTotal();
+      }
+    });
+
+    amountInput.addEventListener('input', updateSplitsTotal);
+    container.appendChild(row);
   });
 }
 
@@ -495,13 +513,16 @@ $('split-evenly-btn').addEventListener('click', () => {
   const total = parseFloat($('exp-total').value);
   clearError('add-expense-error');
   if (!total || total <= 0) { setError('add-expense-error', '請先輸入總金額'); return; }
-  if (members.length === 0) { setError('add-expense-error', '請先新增成員'); return; }
 
-  const n = members.length;
+  const checkedInputs = [...$('splits-table').querySelectorAll('.split-checkbox:checked')]
+    .map(cb => cb.closest('.split-input-row').querySelector('.split-amount'));
+  if (checkedInputs.length === 0) { setError('add-expense-error', '請先勾選參與成員'); return; }
+
+  const n = checkedInputs.length;
   const baseCents = Math.floor(total * 100 / n);
   const remainder = Math.round(total * 100) - baseCents * n;
 
-  document.querySelectorAll('.split-amount').forEach((input, i) => {
+  checkedInputs.forEach((input, i) => {
     input.value = ((i < remainder ? baseCents + 1 : baseCents) / 100).toFixed(0);
   });
   updateSplitsTotal();
@@ -702,21 +723,40 @@ function openEditExpense(exp) {
   (exp.splits || []).forEach(s => { splitMap[s.person] = s.amount; });
 
   members.forEach(m => {
+    const preChecked = splitMap[m.name] != null;
     const row = document.createElement('div');
     row.className = 'split-input-row';
     row.innerHTML = `
-      <label class="split-label">${escHtml(m.name)}</label>
-      <div class="split-input-wrap">
-        <span class="currency-sign">$</span>
-        <input type="number" class="edit-split-amount" data-person="${escHtml(m.name)}"
-               min="0" step="1" placeholder="0" value="${splitMap[m.name] != null ? splitMap[m.name] : ''}" />
+      <label class="split-member-label">
+        <input type="checkbox" class="edit-split-checkbox" data-person="${escHtml(m.name)}" ${preChecked ? 'checked' : ''} />
+        <span class="split-label">${escHtml(m.name)}</span>
+      </label>
+      <div class="split-amount-wrap${preChecked ? '' : ' hidden'}">
+        <div class="split-input-wrap">
+          <span class="currency-sign">$</span>
+          <input type="number" class="edit-split-amount" data-person="${escHtml(m.name)}"
+                 min="0" step="1" placeholder="0" value="${preChecked ? splitMap[m.name] : ''}" />
+        </div>
       </div>
     `;
-    container.appendChild(row);
-  });
 
-  container.querySelectorAll('.edit-split-amount').forEach(input => {
-    input.addEventListener('input', updateEditSplitsTotal);
+    const checkbox    = row.querySelector('.edit-split-checkbox');
+    const amountWrap  = row.querySelector('.split-amount-wrap');
+    const amountInput = row.querySelector('.edit-split-amount');
+
+    checkbox.addEventListener('change', () => {
+      if (checkbox.checked) {
+        amountWrap.classList.remove('hidden');
+        amountInput.focus();
+      } else {
+        amountWrap.classList.add('hidden');
+        amountInput.value = '';
+        updateEditSplitsTotal();
+      }
+    });
+
+    amountInput.addEventListener('input', updateEditSplitsTotal);
+    container.appendChild(row);
   });
 
   updateEditSplitsTotal();
@@ -733,13 +773,16 @@ $('edit-split-evenly-btn').addEventListener('click', () => {
   const total = parseFloat($('edit-exp-total').value);
   clearError('edit-expense-error');
   if (!total || total <= 0) { setError('edit-expense-error', '請先輸入總金額'); return; }
-  if (members.length === 0) { setError('edit-expense-error', '請先新增成員'); return; }
 
-  const n = members.length;
+  const checkedInputs = [...$('edit-splits-table').querySelectorAll('.edit-split-checkbox:checked')]
+    .map(cb => cb.closest('.split-input-row').querySelector('.edit-split-amount'));
+  if (checkedInputs.length === 0) { setError('edit-expense-error', '請先勾選參與成員'); return; }
+
+  const n = checkedInputs.length;
   const baseCents = Math.floor(total * 100 / n);
   const remainder = Math.round(total * 100) - baseCents * n;
 
-  document.querySelectorAll('.edit-split-amount').forEach((input, i) => {
+  checkedInputs.forEach((input, i) => {
     input.value = ((i < remainder ? baseCents + 1 : baseCents) / 100).toFixed(0);
   });
   updateEditSplitsTotal();
