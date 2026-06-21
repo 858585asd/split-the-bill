@@ -286,6 +286,7 @@ body {
   color: var(--dark);
 }
 .split-select-all-row label { cursor: pointer; }
+.split-select-all-row input[type="checkbox"] { width: 1.4rem; height: 1.4rem; accent-color: var(--primary); cursor: pointer; }
 .split-input-row {
   display: grid;
   grid-template-columns: 1.4rem 1fr auto;
