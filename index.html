@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>分帳 App</title>
-  <link rel="stylesheet" href="style.css?v=17" />
+  <link rel="stylesheet" href="style.css?v=18" />
 </head>
 <body>
 
@@ -108,7 +108,6 @@
   <!-- Tab 列 -->
   <div class="tab-bar">
     <button class="nav-tab active" data-tab="expenses">帳目明細</button>
-    <button class="nav-tab" data-tab="add">新增花費</button>
     <button class="nav-tab" data-tab="members">成員</button>
     <button class="nav-tab" data-tab="settle">結算</button>
   </div>
@@ -117,7 +116,10 @@
   <div id="tab-expenses" class="tab-panel">
     <div class="panel-header">
       <h2>帳目明細</h2>
-      <button id="refresh-expenses-btn" class="btn btn-ghost btn-sm">重新整理</button>
+      <div class="panel-header-actions">
+        <button id="open-add-expense-btn" class="btn btn-primary btn-sm">+ 新增花費</button>
+        <button id="refresh-expenses-btn" class="btn btn-ghost btn-sm">重新整理</button>
+      </div>
     </div>
     <div id="expenses-members-bar" class="members-bar"></div>
     <div id="expenses-loading" class="loading-msg">載入中…</div>
@@ -126,38 +128,43 @@
     <div id="expenses-list"></div>
   </div>
 
-  <!-- ── 新增花費 Tab ── -->
-  <div id="tab-add" class="tab-panel hidden">
-    <div class="panel-header"><h2>新增花費</h2></div>
-    <form id="add-expense-form">
-      <div class="form-group">
-        <label for="exp-description">項目名稱</label>
-        <input type="text" id="exp-description" placeholder="例：晚餐、計程車" maxlength="100" required />
-      </div>
-      <div class="form-group">
-        <label for="exp-payer">付款人</label>
-        <select id="exp-payer" required>
-          <option value="">請選擇付款人</option>
-        </select>
-      </div>
-      <div class="form-group">
-        <label for="exp-total">總金額</label>
-        <div class="total-input-row">
-          <div class="split-input-wrap">
-            <span class="currency-sign">$</span>
-            <input type="number" id="exp-total" placeholder="0" min="0" step="1" />
-          </div>
-          <button type="button" id="split-evenly-btn" class="btn btn-ghost">一鍵平分</button>
+  <!-- ── 新增花費 Modal ── -->
+  <div id="add-expense-modal" class="modal-overlay hidden">
+    <div class="modal-card modal-card-lg">
+      <h3 class="modal-title">新增花費</h3>
+      <form id="add-expense-form">
+        <div class="form-group">
+          <label for="exp-description">項目名稱</label>
+          <input type="text" id="exp-description" placeholder="例：晚餐、計程車" maxlength="100" required />
         </div>
-      </div>
-      <div class="form-group">
-        <label>選擇參與成員與分攤金額</label>
-        <div id="splits-table"></div>
-      </div>
-      <div class="total-row">各人合計：<span id="splits-total">$0</span></div>
-      <div id="add-expense-error" class="error-msg hidden"></div>
-      <button type="submit" id="add-expense-btn" class="btn btn-primary btn-full">新增花費</button>
-    </form>
+        <div class="form-group">
+          <label for="exp-payer">付款人</label>
+          <select id="exp-payer" required>
+            <option value="">請選擇付款人</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label for="exp-total">總金額</label>
+          <div class="total-input-row">
+            <div class="split-input-wrap">
+              <span class="currency-sign">$</span>
+              <input type="number" id="exp-total" placeholder="0" min="0" step="1" />
+            </div>
+            <button type="button" id="split-evenly-btn" class="btn btn-ghost">一鍵平分</button>
+          </div>
+        </div>
+        <div class="form-group">
+          <label>選擇參與成員與分攤金額</label>
+          <div id="splits-table"></div>
+        </div>
+        <div class="total-row">各人合計：<span id="splits-total">$0</span></div>
+        <div id="add-expense-error" class="error-msg hidden"></div>
+        <div class="modal-btns" style="margin-top:.75rem">
+          <button type="button" id="add-expense-close-btn" class="btn btn-ghost">取消</button>
+          <button type="submit" id="add-expense-btn" class="btn btn-primary">新增花費</button>
+        </div>
+      </form>
+    </div>
   </div>
 
   <!-- ── 結算 Tab ── -->
@@ -255,9 +262,9 @@
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
 
-<script src="js/firebase-config.js?v=17"></script>
-<script src="js/db.js?v=17"></script>
-<script src="js/settlement.js?v=17"></script>
-<script src="js/app.js?v=17"></script>
+<script src="js/firebase-config.js?v=18"></script>
+<script src="js/db.js?v=18"></script>
+<script src="js/settlement.js?v=18"></script>
+<script src="js/app.js?v=18"></script>
 </body>
 </html>

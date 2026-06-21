@@ -271,9 +271,11 @@ body {
 .total-input-row .split-input-wrap input { width: 100%; }
 
 /* ── 分攤表格 ── */
+.panel-header-actions { display: flex; gap: .4rem; align-items: center; }
+
 .split-select-all-row {
   display: grid;
-  grid-template-columns: 1.15rem 1fr;
+  grid-template-columns: 1.4rem 1fr;
   align-items: center;
   column-gap: .75rem;
   padding: .45rem 0 .6rem;
@@ -286,7 +288,7 @@ body {
 .split-select-all-row label { cursor: pointer; }
 .split-input-row {
   display: grid;
-  grid-template-columns: 1.15rem 1fr auto;
+  grid-template-columns: 1.4rem 1fr auto;
   align-items: center;
   column-gap: .75rem;
   padding: .55rem 0;
@@ -297,10 +299,11 @@ body {
   pointer-events: none;
 }
 .split-checkbox {
-  width: 1.05rem;
-  height: 1.05rem;
+  width: 1.4rem;
+  height: 1.4rem;
   accent-color: var(--primary);
   cursor: pointer;
+  flex-shrink: 0;
 }
 .split-label { font-size: .9rem; color: var(--text); cursor: pointer; }
 

@@ -273,7 +273,6 @@ function switchTab(tab) {
   $(`tab-${tab}`).classList.remove('hidden');
 
   if (tab === 'expenses') loadExpenses();
-  if (tab === 'add')      renderAddExpenseForm();
   if (tab === 'settle')   loadSettlement();
   if (tab === 'members')  renderMembersList();
 }
@@ -422,6 +421,21 @@ async function loadExpenses() {
 }
 
 $('refresh-expenses-btn').addEventListener('click', loadExpenses);
+
+$('open-add-expense-btn').addEventListener('click', async () => {
+  clearError('add-expense-error');
+  $('exp-description').value = '';
+  $('exp-total').value = '';
+  await loadMembers();
+  renderPayerDropdown();
+  renderSplitsTable();
+  updateSplitsTotal();
+  show('add-expense-modal');
+});
+
+$('add-expense-close-btn').addEventListener('click', () => {
+  hide('add-expense-modal');
+});
 
 async function deleteExpense(id) {
   if (!await customConfirm('確定要刪除這筆花費嗎？', { okText: '刪除', danger: true })) return;
@@ -592,10 +606,8 @@ $('add-expense-form').addEventListener('submit', async (e) => {
 
   try {
     await dbOps.addExpense(currentTripCode, { date: todayStr(), description, payer, total, splits });
-    $('add-expense-form').reset();
-    renderSplitsTable();
-    updateSplitsTotal();
-    switchTab('expenses');
+    hide('add-expense-modal');
+    await loadExpenses();
   } catch (err) {
     setError('add-expense-error', '新增失敗：' + err.message);
   } finally {
