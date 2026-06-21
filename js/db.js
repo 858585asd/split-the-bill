@@ -79,6 +79,15 @@ const dbOps = {
     });
   },
 
+  async updateExpense(tripCode, expenseId, data) {
+    await expensesCol(tripCode).doc(expenseId).update({
+      description: data.description,
+      payer: data.payer,
+      total: data.total,
+      splits: data.splits
+    });
+  },
+
   async deleteExpense(tripCode, expenseId) {
     await expensesCol(tripCode).doc(expenseId).delete();
   },

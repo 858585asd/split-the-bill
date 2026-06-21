@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>分帳 App</title>
-  <link rel="stylesheet" href="style.css?v=13" />
+  <link rel="stylesheet" href="style.css?v=14" />
 </head>
 <body>
 
@@ -200,6 +200,45 @@
   <div class="spinner"></div>
 </div>
 
+<!-- ── 編輯花費 Modal ── -->
+<div id="edit-expense-modal" class="modal-overlay hidden">
+  <div class="modal-card modal-card-lg">
+    <h3 class="modal-title">編輯花費</h3>
+    <form id="edit-expense-form">
+      <div class="form-group">
+        <label for="edit-exp-description">項目名稱</label>
+        <input type="text" id="edit-exp-description" maxlength="100" required />
+      </div>
+      <div class="form-group">
+        <label for="edit-exp-payer">付款人</label>
+        <select id="edit-exp-payer" required>
+          <option value="">請選擇付款人</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label for="edit-exp-total">總金額</label>
+        <div class="total-input-row">
+          <div class="split-input-wrap">
+            <span class="currency-sign">$</span>
+            <input type="number" id="edit-exp-total" placeholder="0" min="0" step="1" />
+          </div>
+          <button type="button" id="edit-split-evenly-btn" class="btn btn-ghost">一鍵平分</button>
+        </div>
+      </div>
+      <div class="form-group">
+        <label>各人分攤金額</label>
+        <div id="edit-splits-table"></div>
+      </div>
+      <div class="total-row">各人合計：<span id="edit-splits-total">$0</span></div>
+      <div id="edit-expense-error" class="error-msg hidden"></div>
+      <div class="modal-btns" style="margin-top:.75rem">
+        <button type="button" id="edit-expense-cancel-btn" class="btn btn-ghost">取消</button>
+        <button type="submit" id="edit-expense-submit-btn" class="btn btn-primary">儲存</button>
+      </div>
+    </form>
+  </div>
+</div>
+
 <!-- ── 自訂確認框 ── -->
 <div id="confirm-modal" class="modal-overlay hidden">
   <div class="modal-card">
@@ -216,9 +255,9 @@
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
 
-<script src="js/firebase-config.js?v=13"></script>
-<script src="js/db.js?v=13"></script>
-<script src="js/settlement.js?v=13"></script>
-<script src="js/app.js?v=13"></script>
+<script src="js/firebase-config.js?v=14"></script>
+<script src="js/db.js?v=14"></script>
+<script src="js/settlement.js?v=14"></script>
+<script src="js/app.js?v=14"></script>
 </body>
 </html>

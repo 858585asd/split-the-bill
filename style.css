@@ -531,6 +531,14 @@ body {
 }
 .modal-btns .btn { min-width: 90px; }
 
+.modal-card-lg {
+  max-width: 500px;
+  max-height: 88vh;
+  overflow-y: auto;
+  text-align: left;
+}
+.modal-title { font-size: 1.1rem; color: var(--dark); margin-bottom: 1.1rem; font-weight: 700; }
+
 /* ── 帳目成員欄 ── */
 .members-bar {
   display: flex;

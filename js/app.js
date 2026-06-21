@@ -403,14 +403,16 @@ async function loadExpenses() {
           </div>
           <div class="expense-right">
             <span class="expense-total">${formatMoney(exp.total)}</span>
-            <button class="btn btn-danger btn-sm">刪除</button>
+            <button class="btn btn-ghost btn-sm btn-edit-expense">編輯</button>
+            <button class="btn btn-danger btn-sm btn-del-expense">刪除</button>
           </div>
         </div>
         <div class="expense-splits">
           ${splits.map(s => `<span class="split-tag">${escHtml(s.person)}: ${formatMoney(s.amount)}</span>`).join('')}
         </div>
       `;
-      card.querySelector('.btn-danger').addEventListener('click', () => deleteExpense(exp.id));
+      card.querySelector('.btn-edit-expense').addEventListener('click', () => openEditExpense(exp));
+      card.querySelector('.btn-del-expense').addEventListener('click', () => deleteExpense(exp.id));
       container.appendChild(card);
     });
   } catch (err) {
@@ -672,6 +674,126 @@ async function deleteSettlement(id) {
 }
 
 $('refresh-settle-btn').addEventListener('click', loadSettlement);
+
+// ── 編輯花費 ─────────────────────────────────────────────────
+
+let editingExpenseId = null;
+
+function openEditExpense(exp) {
+  editingExpenseId = exp.id;
+  clearError('edit-expense-error');
+
+  $('edit-exp-description').value = exp.description;
+  $('edit-exp-total').value = exp.total;
+
+  const sel = $('edit-exp-payer');
+  sel.innerHTML = '<option value="">請選擇付款人</option>';
+  members.forEach(m => {
+    const opt = document.createElement('option');
+    opt.value = m.name;
+    opt.textContent = m.name;
+    if (m.name === exp.payer) opt.selected = true;
+    sel.appendChild(opt);
+  });
+
+  const container = $('edit-splits-table');
+  container.innerHTML = '';
+  const splitMap = {};
+  (exp.splits || []).forEach(s => { splitMap[s.person] = s.amount; });
+
+  members.forEach(m => {
+    const row = document.createElement('div');
+    row.className = 'split-input-row';
+    row.innerHTML = `
+      <label class="split-label">${escHtml(m.name)}</label>
+      <div class="split-input-wrap">
+        <span class="currency-sign">$</span>
+        <input type="number" class="edit-split-amount" data-person="${escHtml(m.name)}"
+               min="0" step="1" placeholder="0" value="${splitMap[m.name] != null ? splitMap[m.name] : ''}" />
+      </div>
+    `;
+    container.appendChild(row);
+  });
+
+  container.querySelectorAll('.edit-split-amount').forEach(input => {
+    input.addEventListener('input', updateEditSplitsTotal);
+  });
+
+  updateEditSplitsTotal();
+  show('edit-expense-modal');
+}
+
+function updateEditSplitsTotal() {
+  let total = 0;
+  document.querySelectorAll('.edit-split-amount').forEach(i => { total += parseFloat(i.value) || 0; });
+  $('edit-splits-total').textContent = formatMoney(total);
+}
+
+$('edit-split-evenly-btn').addEventListener('click', () => {
+  const total = parseFloat($('edit-exp-total').value);
+  clearError('edit-expense-error');
+  if (!total || total <= 0) { setError('edit-expense-error', '請先輸入總金額'); return; }
+  if (members.length === 0) { setError('edit-expense-error', '請先新增成員'); return; }
+
+  const n = members.length;
+  const baseCents = Math.floor(total * 100 / n);
+  const remainder = Math.round(total * 100) - baseCents * n;
+
+  document.querySelectorAll('.edit-split-amount').forEach((input, i) => {
+    input.value = ((i < remainder ? baseCents + 1 : baseCents) / 100).toFixed(0);
+  });
+  updateEditSplitsTotal();
+});
+
+$('edit-expense-cancel-btn').addEventListener('click', () => {
+  hide('edit-expense-modal');
+  editingExpenseId = null;
+});
+
+$('edit-expense-form').addEventListener('submit', async (e) => {
+  e.preventDefault();
+  clearError('edit-expense-error');
+
+  const description = $('edit-exp-description').value.trim();
+  const payer       = $('edit-exp-payer').value;
+  const total       = parseFloat($('edit-exp-total').value);
+
+  if (!description) { setError('edit-expense-error', '請輸入項目名稱'); return; }
+  if (!payer)        { setError('edit-expense-error', '請選擇付款人'); return; }
+  if (!total || total <= 0) { setError('edit-expense-error', '請輸入總金額'); return; }
+
+  const splits = [];
+  document.querySelectorAll('.edit-split-amount').forEach(input => {
+    const amount = parseFloat(input.value);
+    if (amount > 0) splits.push({ person: input.dataset.person, amount: Math.round(amount * 100) / 100 });
+  });
+  if (splits.length === 0) { setError('edit-expense-error', '請至少輸入一人的分攤金額'); return; }
+
+  const splitsSum    = Math.round(splits.reduce((s, x) => s + x.amount, 0) * 100) / 100;
+  const totalRounded = Math.round(total * 100) / 100;
+  if (Math.abs(splitsSum - totalRounded) > 0.01) {
+    setError('edit-expense-error', `各人合計 ${formatMoney(splitsSum)} 與總金額 ${formatMoney(totalRounded)} 不符`);
+    return;
+  }
+
+  const btn = $('edit-expense-submit-btn');
+  btn.disabled = true;
+  btn.textContent = '儲存中…';
+  showLoading();
+
+  try {
+    await dbOps.updateExpense(currentTripCode, editingExpenseId, { description, payer, total, splits });
+    hide('edit-expense-modal');
+    editingExpenseId = null;
+    await loadExpenses();
+  } catch (err) {
+    setError('edit-expense-error', '儲存失敗：' + err.message);
+  } finally {
+    btn.disabled = false;
+    btn.textContent = '儲存';
+    hideLoading();
+  }
+});
 
 // ── 刪除旅遊 ─────────────────────────────────────────────────
 
