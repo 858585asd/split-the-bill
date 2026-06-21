@@ -53,12 +53,16 @@ body {
 }
 .trips-header h1 { font-size: 1.7rem; color: var(--dark); letter-spacing: -.5px; }
 
-#create-trip-form,
 #recent-trips-section,
 .join-section {
   max-width: 620px;
   margin: 0 auto;
   padding: 0 1.25rem;
+}
+
+#create-trip-form {
+  max-width: 540px;
+  margin: 1.5rem auto;
 }
 
 #recent-trips-section { margin-top: .25rem; }
