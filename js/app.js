@@ -373,6 +373,7 @@ function renderExpensesMembersBar() {
 }
 
 async function loadExpenses() {
+  await loadMembers();
   renderExpensesMembersBar();
   $('expenses-loading').textContent = '載入中…';
   show('expenses-loading');
@@ -476,7 +477,8 @@ function updateSplitsTotal() {
   $('splits-total').textContent = formatMoney(total);
 }
 
-function renderAddExpenseForm() {
+async function renderAddExpenseForm() {
+  await loadMembers();
   renderPayerDropdown();
   renderSplitsTable();
   $('exp-total').value = '';
