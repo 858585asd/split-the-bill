@@ -76,9 +76,10 @@ body {
   transition: transform .15s, border-color .15s;
 }
 .trip-card:hover { transform: translateY(-2px); border-color: var(--primary); }
-.trip-card-info  { display: flex; flex-direction: column; gap: .25rem; }
-.trip-card-name  { font-weight: 700; font-size: 1rem; color: var(--text); }
-.trip-card-code  { font-size: .78rem; color: var(--text-sub); }
+.trip-card-info    { display: flex; flex-direction: column; gap: .25rem; flex: 1; }
+.trip-card-name    { font-weight: 700; font-size: 1rem; color: var(--text); }
+.trip-card-code    { font-size: .78rem; color: var(--text-sub); }
+.trip-card-actions { display: flex; gap: .4rem; flex-shrink: 0; }
 
 .join-section {
   margin-top: 1.5rem;
@@ -501,6 +502,60 @@ body {
   justify-content: center;
 }
 .modal-btns .btn { min-width: 90px; }
+
+/* ── 登入畫面 ── */
+#screen-login {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1.5rem;
+  background: linear-gradient(160deg, #C0FDFB 0%, #DAFFEF 50%, #FCFFFD 100%);
+}
+
+.login-card {
+  background: var(--card);
+  border: 2px solid var(--border);
+  border-radius: var(--radius);
+  padding: 2.5rem 2rem;
+  max-width: 380px;
+  width: 100%;
+  box-shadow: var(--shadow-lg);
+  text-align: center;
+}
+
+.login-icon  { font-size: 3rem; line-height: 1; margin-bottom: .5rem; }
+.login-title { font-size: 2rem; color: var(--dark); margin-bottom: .4rem; }
+.login-sub   { font-size: .9rem; color: var(--text-sub); margin-bottom: 2rem; line-height: 1.6; }
+
+.btn-google {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: .75rem;
+  width: 100%;
+  padding: .8rem 1.5rem;
+  background: #fff;
+  color: #3c4043;
+  border: 2px solid #dadce0;
+  border-radius: 999px;
+  font-size: .95rem;
+  font-weight: 600;
+  cursor: pointer;
+  box-shadow: 0 2px 8px rgba(0,0,0,.1);
+  transition: box-shadow .15s, background .15s;
+}
+.btn-google:hover { background: #f8f9fa; box-shadow: 0 4px 14px rgba(0,0,0,.15); }
+
+/* ── 出遊列表 Header ── */
+.trips-header-right { display: flex; gap: .5rem; align-items: center; }
+.user-greeting {
+  max-width: 620px;
+  margin: -.25rem auto .5rem;
+  padding: 0 1.25rem;
+  font-size: .82rem;
+  color: var(--text-sub);
+}
 
 /* ── 手機優化 ── */
 @media (max-width: 480px) {

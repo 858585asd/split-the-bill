@@ -1,9 +1,9 @@
 // 分帳 App — 主邏輯（Firebase 版）
 
-const RECENT_TRIPS_KEY = 'stb_recent_trips'; // localStorage: [{code, name}]
+let currentUser = null;
 let currentTripCode = null;
 let currentTripName = '';
-let members = []; // [{id, name}]
+let members = [];
 
 // ── 工具函式 ────────────────────────────────────────────────
 
@@ -43,19 +43,29 @@ function customConfirm(message, { okText = '確定', danger = false } = {}) {
 // ── 啟動 ─────────────────────────────────────────────────────
 
 document.addEventListener('DOMContentLoaded', () => {
-  // 檢查 Firebase 是否已設定
   if (!firebase.apps.length || firebase.app().options.projectId === 'YOUR_PROJECT_ID') {
     show('screen-config');
     return;
   }
 
-  // 從 URL hash 直接進入出遊
-  const hash = location.hash.replace('#', '').trim().toUpperCase();
-  if (hash.length === 6) {
-    enterTrip(hash);
-  } else {
-    showTripList();
-  }
+  auth.onAuthStateChanged(user => {
+    if (user) {
+      currentUser = user;
+      $('user-greeting').textContent = `歡迎，${user.displayName || user.email}`;
+      hide('screen-login');
+      const hash = location.hash.replace('#', '').trim().toUpperCase();
+      if (hash.length === 6) {
+        enterTrip(hash);
+      } else {
+        showTripList();
+      }
+    } else {
+      currentUser = null;
+      hide('screen-trips');
+      hide('screen-trip');
+      show('screen-login');
+    }
+  });
 });
 
 // ── 出遊列表 ─────────────────────────────────────────────────
@@ -68,43 +78,62 @@ function showTripList() {
   renderRecentTrips();
 }
 
-function getRecentTrips() {
-  try { return JSON.parse(localStorage.getItem(RECENT_TRIPS_KEY)) || []; }
-  catch { return []; }
-}
-
-function saveRecentTrip(code, name) {
-  const trips = getRecentTrips().filter(t => t.code !== code);
-  trips.unshift({ code, name });
-  localStorage.setItem(RECENT_TRIPS_KEY, JSON.stringify(trips.slice(0, 20)));
-}
-
-function renderRecentTrips() {
-  const trips = getRecentTrips();
-  hide('trips-loading');
+async function renderRecentTrips() {
+  show('trips-loading');
+  hide('trips-empty');
   const list = $('trips-list');
   list.innerHTML = '';
 
-  if (trips.length === 0) {
-    show('trips-empty');
-    return;
-  }
-  hide('trips-empty');
+  try {
+    const trips = await dbOps.getUserTrips(currentUser.uid);
+    hide('trips-loading');
 
-  trips.forEach(t => {
-    const card = document.createElement('div');
-    card.className = 'trip-card';
-    card.innerHTML = `
-      <div class="trip-card-info">
-        <span class="trip-card-name">${escHtml(t.name)}</span>
-        <span class="trip-card-code">代碼：${escHtml(t.code)}</span>
-      </div>
-      <button class="btn btn-primary btn-sm">進入</button>
-    `;
-    card.querySelector('button').addEventListener('click', () => enterTrip(t.code));
-    list.appendChild(card);
+    if (trips.length === 0) { show('trips-empty'); return; }
+    hide('trips-empty');
+
+    trips.forEach(t => {
+      const card = document.createElement('div');
+      card.className = 'trip-card';
+      card.innerHTML = `
+        <div class="trip-card-info">
+          <span class="trip-card-name">${escHtml(t.name)}</span>
+          <span class="trip-card-code">代碼：${escHtml(t.code)}</span>
+        </div>
+        <div class="trip-card-actions">
+          <button class="btn btn-primary btn-sm btn-enter">進入</button>
+          <button class="btn btn-danger btn-sm btn-delete-trip">刪除</button>
+        </div>
+      `;
+      card.querySelector('.btn-enter').addEventListener('click', () => enterTrip(t.code));
+      card.querySelector('.btn-delete-trip').addEventListener('click', () => deleteTripFromList(t.code, t.name));
+      list.appendChild(card);
+    });
+  } catch {
+    hide('trips-loading');
+    show('trips-empty');
+  }
+}
+
+function signIn() {
+  clearError('login-error');
+  const provider = new firebase.auth.GoogleAuthProvider();
+  auth.signInWithPopup(provider).catch(() => {
+    setError('login-error', '登入失敗，請再試一次');
   });
 }
+
+async function signOut() {
+  if (!await customConfirm('確定要登出嗎？')) return;
+  currentUser = null;
+  currentTripCode = null;
+  currentTripName = '';
+  members = [];
+  location.hash = '';
+  auth.signOut();
+}
+
+$('google-signin-btn').addEventListener('click', signIn);
+$('signout-btn').addEventListener('click', signOut);
 
 // 新增出遊
 $('create-trip-btn').addEventListener('click', () => {
@@ -133,7 +162,7 @@ $('confirm-create-btn').addEventListener('click', async () => {
 
   try {
     const code = await dbOps.createTrip(name);
-    saveRecentTrip(code, name);
+    dbOps.saveUserTrip(currentUser.uid, code, name);
     enterTrip(code);
   } catch (err) {
     setError('create-trip-error', '建立失敗：' + err.message);
@@ -157,7 +186,7 @@ $('join-trip-btn').addEventListener('click', async () => {
   try {
     const trip = await dbOps.getTrip(code);
     if (!trip) { setError('join-error', '找不到此出遊代碼'); return; }
-    saveRecentTrip(code, trip.name);
+    dbOps.saveUserTrip(currentUser.uid, code, trip.name);
     enterTrip(code);
   } catch (err) {
     setError('join-error', '查詢失敗：' + err.message);
@@ -182,7 +211,7 @@ async function enterTrip(code) {
     currentTripCode = code;
     currentTripName = trip.name;
     location.hash = code;
-    saveRecentTrip(code, trip.name);
+    dbOps.saveUserTrip(currentUser.uid, code, trip.name);
 
     hide('screen-trips');
     show('screen-trip');
@@ -590,3 +619,16 @@ async function deleteSettlement(id) {
 }
 
 $('refresh-settle-btn').addEventListener('click', loadSettlement);
+
+// ── 刪除旅遊 ─────────────────────────────────────────────────
+
+async function deleteTripFromList(code, name) {
+  if (!await customConfirm(`確定要刪除「${name}」嗎？\n此操作將永久刪除所有成員、花費與還款紀錄，且無法復原。`, { okText: '刪除', danger: true })) return;
+  try {
+    await dbOps.deleteTrip(code);
+    await dbOps.removeUserTrip(currentUser.uid, code);
+    renderRecentTrips();
+  } catch (err) {
+    alert('刪除失敗：' + err.message);
+  }
+}

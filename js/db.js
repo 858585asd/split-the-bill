@@ -1,14 +1,16 @@
 // Firestore 資料操作層
 // 資料結構：
-//   trips/{tripCode}            ← 出遊文件（tripCode = 6碼代碼）
-//   trips/{tripCode}/members    ← 成員子集合
-//   trips/{tripCode}/expenses   ← 花費子集合（含 splits 陣列）
-//   trips/{tripCode}/settlements ← 還款紀錄子集合
+//   users/{uid}/trips/{tripCode}  ← 使用者的旅遊清單
+//   trips/{tripCode}              ← 出遊文件（tripCode = 6碼代碼）
+//   trips/{tripCode}/members      ← 成員子集合
+//   trips/{tripCode}/expenses     ← 花費子集合（含 splits 陣列）
+//   trips/{tripCode}/settlements  ← 還款紀錄子集合
 
 function tripsCol()                   { return db.collection('trips'); }
 function membersCol(tripCode)         { return db.collection('trips').doc(tripCode).collection('members'); }
 function expensesCol(tripCode)        { return db.collection('trips').doc(tripCode).collection('expenses'); }
 function settlementsCol(tripCode)     { return db.collection('trips').doc(tripCode).collection('settlements'); }
+function userTripsCol(uid)            { return db.collection('users').doc(uid).collection('trips'); }
 
 // 產生 6 碼出遊代碼（排除易混淆字元）
 function generateTripCode() {
@@ -100,5 +102,34 @@ const dbOps = {
 
   async deleteSettlement(tripCode, settlementId) {
     await settlementsCol(tripCode).doc(settlementId).delete();
+  },
+
+  // ── 刪除整個出遊（含所有子集合） ──────────────────────────
+  async deleteTrip(tripCode) {
+    const deleteCol = async (colRef) => {
+      const snap = await colRef.get();
+      await Promise.all(snap.docs.map(d => d.ref.delete()));
+    };
+    await deleteCol(membersCol(tripCode));
+    await deleteCol(expensesCol(tripCode));
+    await deleteCol(settlementsCol(tripCode));
+    await tripsCol().doc(tripCode).delete();
+  },
+
+  // ── 使用者旅遊清單（Firestore，綁定帳號） ─────────────────
+  async getUserTrips(uid) {
+    const snap = await userTripsCol(uid).orderBy('joinedAt', 'desc').get();
+    return snap.docs.map(d => ({ code: d.id, name: d.data().name }));
+  },
+
+  async saveUserTrip(uid, code, name) {
+    await userTripsCol(uid).doc(code).set({
+      name,
+      joinedAt: firebase.firestore.FieldValue.serverTimestamp()
+    });
+  },
+
+  async removeUserTrip(uid, code) {
+    await userTripsCol(uid).doc(code).delete();
   }
 };
