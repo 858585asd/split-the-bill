@@ -466,7 +466,7 @@ function renderSplitsTable() {
         <input type="checkbox" class="split-checkbox" data-person="${escHtml(m.name)}" />
         <span class="split-label">${escHtml(m.name)}</span>
       </label>
-      <div class="split-amount-wrap hidden">
+      <div class="split-amount-wrap split-invisible">
         <div class="split-input-wrap">
           <span class="currency-sign">$</span>
           <input type="number" class="split-amount" data-person="${escHtml(m.name)}" min="0" step="1" placeholder="0" />
@@ -480,10 +480,10 @@ function renderSplitsTable() {
 
     checkbox.addEventListener('change', () => {
       if (checkbox.checked) {
-        amountWrap.classList.remove('hidden');
+        amountWrap.classList.remove('split-invisible');
         amountInput.focus();
       } else {
-        amountWrap.classList.add('hidden');
+        amountWrap.classList.add('split-invisible');
         amountInput.value = '';
         updateSplitsTotal();
       }
@@ -731,7 +731,7 @@ function openEditExpense(exp) {
         <input type="checkbox" class="edit-split-checkbox" data-person="${escHtml(m.name)}" ${preChecked ? 'checked' : ''} />
         <span class="split-label">${escHtml(m.name)}</span>
       </label>
-      <div class="split-amount-wrap${preChecked ? '' : ' hidden'}">
+      <div class="split-amount-wrap${preChecked ? '' : ' split-invisible'}">
         <div class="split-input-wrap">
           <span class="currency-sign">$</span>
           <input type="number" class="edit-split-amount" data-person="${escHtml(m.name)}"
@@ -746,10 +746,10 @@ function openEditExpense(exp) {
 
     checkbox.addEventListener('change', () => {
       if (checkbox.checked) {
-        amountWrap.classList.remove('hidden');
+        amountWrap.classList.remove('split-invisible');
         amountInput.focus();
       } else {
-        amountWrap.classList.add('hidden');
+        amountWrap.classList.add('split-invisible');
         amountInput.value = '';
         updateEditSplitsTotal();
       }

@@ -275,8 +275,13 @@ body {
   display: flex;
   align-items: center;
   gap: .75rem;
-  padding: .5rem 0;
-  border-bottom: 1px solid #e8faf9;
+  padding: .55rem 0;
+  border-bottom: 2px solid var(--border);
+  min-height: 3rem;
+}
+.split-invisible {
+  visibility: hidden;
+  pointer-events: none;
 }
 .split-member-label {
   display: flex;
