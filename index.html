@@ -106,8 +106,8 @@
   <div class="tab-bar">
     <button class="nav-tab active" data-tab="expenses">帳目明細</button>
     <button class="nav-tab" data-tab="add">新增花費</button>
-    <button class="nav-tab" data-tab="settle">結算</button>
     <button class="nav-tab" data-tab="members">成員</button>
+    <button class="nav-tab" data-tab="settle">結算</button>
   </div>
 
   <!-- ── 帳目明細 Tab ── -->
@@ -116,6 +116,7 @@
       <h2>帳目明細</h2>
       <button id="refresh-expenses-btn" class="btn btn-ghost btn-sm">重新整理</button>
     </div>
+    <div id="expenses-members-bar" class="members-bar"></div>
     <div id="expenses-loading" class="loading-msg">載入中…</div>
     <div id="expenses-error" class="error-msg hidden"></div>
     <div id="expenses-empty" class="empty-msg hidden">還沒有任何花費記錄</div>

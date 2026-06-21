@@ -75,6 +75,7 @@ function showTripList() {
   hide('screen-trip');
   show('screen-trips');
   hide('create-trip-form');
+  show('recent-trips-section');
   renderRecentTrips();
 }
 
@@ -336,7 +337,31 @@ async function deleteMember(id, name) {
 
 // ── 帳目明細 ─────────────────────────────────────────────────
 
+function renderExpensesMembersBar() {
+  const bar = $('expenses-members-bar');
+  bar.innerHTML = '';
+  if (members.length === 0) {
+    const empty = document.createElement('div');
+    empty.className = 'members-bar-empty';
+    empty.innerHTML = '<span>還沒有成員</span>';
+    const btn = document.createElement('button');
+    btn.className = 'btn btn-primary btn-sm';
+    btn.textContent = '新增成員';
+    btn.addEventListener('click', () => switchTab('members'));
+    empty.appendChild(btn);
+    bar.appendChild(empty);
+  } else {
+    members.forEach(m => {
+      const chip = document.createElement('span');
+      chip.className = 'member-chip';
+      chip.textContent = m.name;
+      bar.appendChild(chip);
+    });
+  }
+}
+
 async function loadExpenses() {
+  renderExpensesMembersBar();
   $('expenses-loading').textContent = '載入中…';
   show('expenses-loading');
   hide('expenses-error');
