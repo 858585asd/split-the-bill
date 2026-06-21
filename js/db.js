@@ -61,6 +61,10 @@ const dbOps = {
     await membersCol(tripCode).doc(memberId).delete();
   },
 
+  async renameMember(tripCode, memberId, newName) {
+    await membersCol(tripCode).doc(memberId).update({ name: newName });
+  },
+
   // ── 花費 ──────────────────────────────────────────────
 
   async getExpenses(tripCode) {

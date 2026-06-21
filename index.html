@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>分帳 App</title>
-  <link rel="stylesheet" href="style.css?v=18" />
+  <link rel="stylesheet" href="style.css?v=19" />
 </head>
 <body>
 
@@ -257,14 +257,28 @@
   </div>
 </div>
 
+<!-- ── 自訂輸入框 ── -->
+<div id="prompt-modal" class="modal-overlay hidden">
+  <div class="modal-card">
+    <p id="prompt-message"></p>
+    <div class="form-group" style="margin:.75rem 0 .25rem">
+      <input type="text" id="prompt-input" />
+    </div>
+    <div class="modal-btns">
+      <button id="prompt-cancel-btn" class="btn btn-ghost">取消</button>
+      <button id="prompt-ok-btn" class="btn btn-primary">確定</button>
+    </div>
+  </div>
+</div>
+
 <!-- Firebase SDK -->
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
 
-<script src="js/firebase-config.js?v=18"></script>
-<script src="js/db.js?v=18"></script>
-<script src="js/settlement.js?v=18"></script>
-<script src="js/app.js?v=18"></script>
+<script src="js/firebase-config.js?v=19"></script>
+<script src="js/db.js?v=19"></script>
+<script src="js/settlement.js?v=19"></script>
+<script src="js/app.js?v=19"></script>
 </body>
 </html>

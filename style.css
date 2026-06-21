@@ -417,6 +417,7 @@ body {
   box-shadow: var(--shadow);
 }
 .member-name { font-size: .95rem; font-weight: 500; }
+.member-actions { display: flex; gap: .4rem; flex-shrink: 0; }
 
 /* ── 結算 ── */
 .transaction-row {

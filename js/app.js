@@ -42,6 +42,32 @@ function customConfirm(message, { okText = '確定', danger = false } = {}) {
   });
 }
 
+// ── 自訂輸入框 ───────────────────────────────────────────────
+
+function customPrompt(message, defaultValue = '') {
+  return new Promise(resolve => {
+    $('prompt-message').textContent = message;
+    const input = $('prompt-input');
+    input.value = defaultValue;
+    show('prompt-modal');
+    setTimeout(() => { input.focus(); input.select(); }, 50);
+
+    const okBtn = $('prompt-ok-btn');
+    const cleanup = () => {
+      okBtn.removeEventListener('click', onOk);
+      $('prompt-cancel-btn').removeEventListener('click', onCancel);
+      input.removeEventListener('keydown', onKeydown);
+    };
+    const onOk = () => { hide('prompt-modal'); cleanup(); resolve(input.value.trim()); };
+    const onCancel = () => { hide('prompt-modal'); cleanup(); resolve(null); };
+    const onKeydown = e => { if (e.key === 'Enter') onOk(); if (e.key === 'Escape') onCancel(); };
+
+    okBtn.addEventListener('click', onOk);
+    $('prompt-cancel-btn').addEventListener('click', onCancel);
+    input.addEventListener('keydown', onKeydown);
+  });
+}
+
 // ── 啟動 ─────────────────────────────────────────────────────
 
 document.addEventListener('DOMContentLoaded', () => {
@@ -300,9 +326,13 @@ function renderMembersList() {
     row.className = 'member-row';
     row.innerHTML = `
       <span class="member-name">${escHtml(m.name)}</span>
-      <button class="btn btn-danger btn-sm">刪除</button>
+      <div class="member-actions">
+        <button class="btn btn-ghost btn-sm btn-rename">更名</button>
+        <button class="btn btn-danger btn-sm btn-delete">刪除</button>
+      </div>
     `;
-    row.querySelector('button').addEventListener('click', () => deleteMember(m.id, m.name));
+    row.querySelector('.btn-rename').addEventListener('click', () => renameMember(m.id, m.name));
+    row.querySelector('.btn-delete').addEventListener('click', () => deleteMember(m.id, m.name));
     container.appendChild(row);
   });
 }
@@ -334,6 +364,24 @@ $('add-member-btn').addEventListener('click', async () => {
 $('new-member-input').addEventListener('keydown', e => { if (e.key === 'Enter') $('add-member-btn').click(); });
 
 async function deleteMember(id, name) {
+  showLoading();
+  let expenses;
+  try {
+    expenses = await dbOps.getExpenses(currentTripCode);
+  } catch {
+    expenses = [];
+  } finally {
+    hideLoading();
+  }
+
+  const isInExpense = expenses.some(exp =>
+    exp.payer === name || (exp.splits || []).some(s => s.person === name)
+  );
+  if (isInExpense) {
+    setError('members-error', `「${name}」有參與花費紀錄，無法刪除。請先刪除或編輯相關花費。`);
+    return;
+  }
+
   if (!await customConfirm(`確定要刪除成員「${name}」嗎？`, { okText: '刪除', danger: true })) return;
   showLoading();
   try {
@@ -344,6 +392,45 @@ async function deleteMember(id, name) {
     renderSplitsTable();
   } catch (err) {
     setError('members-error', '刪除失敗：' + err.message);
+  } finally {
+    hideLoading();
+  }
+}
+
+async function renameMember(id, oldName) {
+  const newName = await customPrompt(`為「${oldName}」重新命名`, oldName);
+  if (!newName || newName === oldName) return;
+
+  if (members.some(m => m.name === newName)) {
+    setError('members-error', `成員「${newName}」已存在`);
+    return;
+  }
+
+  showLoading();
+  try {
+    await dbOps.renameMember(currentTripCode, id, newName);
+
+    const expenses = await dbOps.getExpenses(currentTripCode);
+    const toUpdate = expenses.filter(exp =>
+      exp.payer === oldName || (exp.splits || []).some(s => s.person === oldName)
+    );
+    await Promise.all(toUpdate.map(exp => {
+      const newPayer  = exp.payer === oldName ? newName : exp.payer;
+      const newSplits = (exp.splits || []).map(s =>
+        s.person === oldName ? { ...s, person: newName } : s
+      );
+      return dbOps.updateExpense(currentTripCode, exp.id, {
+        description: exp.description,
+        payer: newPayer,
+        total: exp.total,
+        splits: newSplits
+      });
+    }));
+
+    await loadMembers();
+    renderMembersList();
+  } catch (err) {
+    setError('members-error', '更名失敗：' + err.message);
   } finally {
     hideLoading();
   }
