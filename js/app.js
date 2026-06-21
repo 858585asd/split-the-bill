@@ -458,15 +458,24 @@ function renderSplitsTable() {
     return;
   }
 
-  members.forEach(m => {
+  // 全選列
+  const allRow = document.createElement('div');
+  allRow.className = 'split-select-all-row';
+  allRow.innerHTML = `
+    <input type="checkbox" id="split-check-all" checked />
+    <label for="split-check-all">全選</label>
+  `;
+  container.appendChild(allRow);
+  const checkAll = allRow.querySelector('#split-check-all');
+
+  // 成員列（預設全選）
+  members.forEach((m, i) => {
     const row = document.createElement('div');
     row.className = 'split-input-row';
     row.innerHTML = `
-      <label class="split-member-label">
-        <input type="checkbox" class="split-checkbox" data-person="${escHtml(m.name)}" />
-        <span class="split-label">${escHtml(m.name)}</span>
-      </label>
-      <div class="split-amount-wrap split-invisible">
+      <input type="checkbox" class="split-checkbox" id="split-cb-${i}" checked />
+      <label class="split-label" for="split-cb-${i}">${escHtml(m.name)}</label>
+      <div class="split-amount-wrap">
         <div class="split-input-wrap">
           <span class="currency-sign">$</span>
           <input type="number" class="split-amount" data-person="${escHtml(m.name)}" min="0" step="1" placeholder="0" />
@@ -487,10 +496,32 @@ function renderSplitsTable() {
         amountInput.value = '';
         updateSplitsTotal();
       }
+      // 同步全選狀態
+      const all = container.querySelectorAll('.split-checkbox');
+      const checked = container.querySelectorAll('.split-checkbox:checked');
+      checkAll.indeterminate = checked.length > 0 && checked.length < all.length;
+      checkAll.checked = checked.length === all.length;
     });
 
     amountInput.addEventListener('input', updateSplitsTotal);
     container.appendChild(row);
+  });
+
+  // 全選控制
+  checkAll.addEventListener('change', () => {
+    container.querySelectorAll('.split-checkbox').forEach(cb => {
+      if (cb.checked === checkAll.checked) return;
+      cb.checked = checkAll.checked;
+      const wrap  = cb.closest('.split-input-row').querySelector('.split-amount-wrap');
+      const input = cb.closest('.split-input-row').querySelector('.split-amount');
+      if (checkAll.checked) {
+        wrap.classList.remove('split-invisible');
+      } else {
+        wrap.classList.add('split-invisible');
+        input.value = '';
+      }
+    });
+    updateSplitsTotal();
   });
 }
 
@@ -722,15 +753,26 @@ function openEditExpense(exp) {
   const splitMap = {};
   (exp.splits || []).forEach(s => { splitMap[s.person] = s.amount; });
 
-  members.forEach(m => {
+  // 全選列（狀態依既有分攤決定）
+  const preCheckedCount = members.filter(m => splitMap[m.name] != null).length;
+  const editAllRow = document.createElement('div');
+  editAllRow.className = 'split-select-all-row';
+  editAllRow.innerHTML = `
+    <input type="checkbox" id="edit-split-check-all" />
+    <label for="edit-split-check-all">全選</label>
+  `;
+  container.appendChild(editAllRow);
+  const editCheckAll = editAllRow.querySelector('#edit-split-check-all');
+  editCheckAll.checked = preCheckedCount === members.length;
+  editCheckAll.indeterminate = preCheckedCount > 0 && preCheckedCount < members.length;
+
+  members.forEach((m, i) => {
     const preChecked = splitMap[m.name] != null;
     const row = document.createElement('div');
     row.className = 'split-input-row';
     row.innerHTML = `
-      <label class="split-member-label">
-        <input type="checkbox" class="edit-split-checkbox" data-person="${escHtml(m.name)}" ${preChecked ? 'checked' : ''} />
-        <span class="split-label">${escHtml(m.name)}</span>
-      </label>
+      <input type="checkbox" class="edit-split-checkbox" id="edit-split-cb-${i}" ${preChecked ? 'checked' : ''} />
+      <label class="split-label" for="edit-split-cb-${i}">${escHtml(m.name)}</label>
       <div class="split-amount-wrap${preChecked ? '' : ' split-invisible'}">
         <div class="split-input-wrap">
           <span class="currency-sign">$</span>
@@ -753,10 +795,30 @@ function openEditExpense(exp) {
         amountInput.value = '';
         updateEditSplitsTotal();
       }
+      const all     = container.querySelectorAll('.edit-split-checkbox');
+      const checked = container.querySelectorAll('.edit-split-checkbox:checked');
+      editCheckAll.indeterminate = checked.length > 0 && checked.length < all.length;
+      editCheckAll.checked = checked.length === all.length;
     });
 
     amountInput.addEventListener('input', updateEditSplitsTotal);
     container.appendChild(row);
+  });
+
+  editCheckAll.addEventListener('change', () => {
+    container.querySelectorAll('.edit-split-checkbox').forEach(cb => {
+      if (cb.checked === editCheckAll.checked) return;
+      cb.checked = editCheckAll.checked;
+      const wrap  = cb.closest('.split-input-row').querySelector('.split-amount-wrap');
+      const input = cb.closest('.split-input-row').querySelector('.edit-split-amount');
+      if (editCheckAll.checked) {
+        wrap.classList.remove('split-invisible');
+      } else {
+        wrap.classList.add('split-invisible');
+        input.value = '';
+      }
+    });
+    updateEditSplitsTotal();
   });
 
   updateEditSplitsTotal();
