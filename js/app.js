@@ -140,7 +140,6 @@ $('signout-btn').addEventListener('click', signOut);
 
 // 新增出遊
 $('create-trip-btn').addEventListener('click', () => {
-  hide('trips-list');
   hide('recent-trips-section');
   show('create-trip-form');
   $('trip-name-input').focus();
