@@ -220,6 +220,7 @@ async function enterTrip(code) {
     hide('screen-trips');
     show('screen-trip');
     $('trip-name-display').textContent = trip.name;
+    $('trip-code-display').textContent = '代碼：' + code;
 
     await loadMembers();
     switchTab('expenses');
