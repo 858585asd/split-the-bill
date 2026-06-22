@@ -339,15 +339,26 @@ function renderMembersList() {
 
 $('add-member-btn').addEventListener('click', async () => {
   const input = $('new-member-input');
-  const name = input.value.trim();
+  const rawValue = input.value.trim();
   clearError('members-error');
-  if (!name) { setError('members-error', '請輸入姓名'); return; }
+  if (!rawValue) { setError('members-error', '請輸入姓名'); return; }
+
+  const names = [...new Set(rawValue.split(/[,，]/).map(n => n.trim()).filter(n => n.length > 0))];
+  if (names.length === 0) { setError('members-error', '請輸入姓名'); return; }
+
+  const duplicates = names.filter(n => members.some(m => m.name === n));
+  if (duplicates.length > 0) {
+    setError('members-error', `成員「${duplicates.join('、')}」已存在`);
+    return;
+  }
 
   const btn = $('add-member-btn');
   btn.disabled = true;
   showLoading();
   try {
-    await dbOps.addMember(currentTripCode, name);
+    for (const name of names) {
+      await dbOps.addMember(currentTripCode, name);
+    }
     input.value = '';
     await loadMembers();
     renderMembersList();
