@@ -121,11 +121,15 @@ async function renderRecentTrips() {
     hide('trips-empty');
 
     trips.forEach(t => {
+      const isOwner = t.role === 'owner';
       const card = document.createElement('div');
       card.className = 'trip-card';
       card.innerHTML = `
         <div class="trip-card-info">
-          <span class="trip-card-name">${escHtml(t.name)}</span>
+          <div class="trip-card-name-row">
+            <span class="trip-card-name">${escHtml(t.name)}</span>
+            <span class="trip-role-badge ${isOwner ? 'badge-owner' : 'badge-member'}">${isOwner ? '建立者' : '加入'}</span>
+          </div>
           <span class="trip-card-code">代碼：${escHtml(t.code)}</span>
         </div>
         <div class="trip-card-actions">
@@ -190,7 +194,7 @@ $('confirm-create-btn').addEventListener('click', async () => {
 
   try {
     const code = await dbOps.createTrip(name);
-    dbOps.saveUserTrip(currentUser.uid, code, name);
+    dbOps.saveUserTrip(currentUser.uid, code, name, 'owner');
     $('trip-name-input').value = '';
     enterTrip(code);
   } catch (err) {
@@ -216,7 +220,7 @@ $('join-trip-btn').addEventListener('click', async () => {
   try {
     const trip = await dbOps.getTrip(code);
     if (!trip) { setError('join-error', '找不到此出遊代碼'); return; }
-    dbOps.saveUserTrip(currentUser.uid, code, trip.name);
+    dbOps.saveUserTrip(currentUser.uid, code, trip.name, 'member');
     enterTrip(code);
   } catch (err) {
     setError('join-error', '查詢失敗：' + err.message);

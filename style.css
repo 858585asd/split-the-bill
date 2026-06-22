@@ -80,10 +80,14 @@ body {
   transition: transform .15s, border-color .15s;
 }
 .trip-card:hover { transform: translateY(-2px); border-color: var(--primary); }
-.trip-card-info    { display: flex; flex-direction: column; gap: .25rem; flex: 1; }
-.trip-card-name    { font-weight: 700; font-size: 1rem; color: var(--text); }
-.trip-card-code    { font-size: .78rem; color: var(--text-sub); }
-.trip-card-actions { display: flex; gap: .4rem; flex-shrink: 0; }
+.trip-card-info      { display: flex; flex-direction: column; gap: .25rem; flex: 1; }
+.trip-card-name-row  { display: flex; align-items: center; gap: .4rem; flex-wrap: wrap; }
+.trip-card-name      { font-weight: 700; font-size: 1rem; color: var(--text); }
+.trip-card-code      { font-size: .78rem; color: var(--text-sub); }
+.trip-card-actions   { display: flex; gap: .4rem; flex-shrink: 0; }
+.trip-role-badge     { font-size: .68rem; font-weight: 600; padding: .15rem .45rem; border-radius: 99px; white-space: nowrap; }
+.badge-owner         { background: #dbeafe; color: #1d4ed8; }
+.badge-member        { background: #f0fdf4; color: #15803d; }
 
 .join-section {
   margin-top: 1.5rem;

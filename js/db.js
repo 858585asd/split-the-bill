@@ -132,15 +132,19 @@ const dbOps = {
   // ── 使用者旅遊清單（Firestore，綁定帳號） ─────────────────
   async getUserTrips(uid) {
     const snap = await userTripsCol(uid).get();
-    const trips = snap.docs.map(d => ({ code: d.id, name: d.data().name, joinedAt: d.data().joinedAt || 0 }));
+    const trips = snap.docs.map(d => ({
+      code: d.id,
+      name: d.data().name,
+      joinedAt: d.data().joinedAt || 0,
+      role: d.data().role || 'member'
+    }));
     return trips.sort((a, b) => b.joinedAt - a.joinedAt);
   },
 
-  async saveUserTrip(uid, code, name) {
-    await userTripsCol(uid).doc(code).set({
-      name,
-      joinedAt: Date.now()
-    });
+  async saveUserTrip(uid, code, name, role = null) {
+    const data = { name, joinedAt: Date.now() };
+    if (role) data.role = role;
+    await userTripsCol(uid).doc(code).set(data, { merge: true });
   },
 
   async removeUserTrip(uid, code) {
