@@ -150,6 +150,7 @@ async function renderRecentTrips() {
 function signIn() {
   clearError('login-error');
   const provider = new firebase.auth.GoogleAuthProvider();
+  provider.setCustomParameters({ prompt: 'select_account' });
   auth.signInWithPopup(provider).catch(() => {
     setError('login-error', '登入失敗，請再試一次');
   });
