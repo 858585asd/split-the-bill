@@ -690,38 +690,37 @@ body {
 .calc-toggle.active { background: var(--primary); border-color: var(--primary); color: #fff; }
 
 .calc-panel {
-  position: fixed;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  z-index: 600;
-  max-width: 500px;
-  margin: 0 auto;
+  margin: .35rem 0 0;
   background: var(--card);
   border: 2px solid var(--border);
-  border-bottom: none;
-  border-radius: var(--radius) var(--radius) 0 0;
-  box-shadow: 0 -4px 20px rgba(100, 182, 172, 0.2);
-  padding: .6rem .75rem calc(.75rem + env(safe-area-inset-bottom));
+  border-radius: var(--radius-sm);
+  padding: .35rem .5rem .5rem;
   user-select: none;
   -webkit-user-select: none;
 }
-.calc-display { text-align: right; padding: .2rem .4rem .5rem; }
+.calc-display {
+  display: flex;
+  justify-content: flex-end;
+  align-items: baseline;
+  gap: .5rem;
+  padding: 0 .3rem .3rem;
+  min-height: 1.7rem;
+}
 .calc-expr {
-  font-size: 1.35rem;
+  font-size: 1.2rem;
   font-weight: 700;
   color: var(--text);
   word-break: break-all;
-  min-height: 1.8rem;
+  text-align: right;
 }
-.calc-result { font-size: .85rem; color: var(--text-sub); min-height: 1.15rem; }
+.calc-result { font-size: .9rem; color: var(--text-sub); white-space: nowrap; }
 .calc-keys {
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: .45rem;
+  grid-template-columns: repeat(5, 1fr);
+  gap: .35rem;
 }
 .calc-keys button {
-  height: 2.7rem;
+  height: 2.1rem;
   border: none;
   border-radius: var(--radius-sm);
   background: var(--accent2);
@@ -738,9 +737,48 @@ body {
 .calc-keys .calc-eq   { grid-row: span 2; height: auto; background: var(--primary); color: #fff; }
 .calc-keys .calc-zero { grid-column: span 2; }
 
-/* 計算機開啟時，表單往上讓出空間 */
-body.calc-open .modal-overlay {
-  align-items: flex-start;
-  padding-bottom: calc(var(--calc-h, 320px) + .75rem);
+/* ── 花費 Modal：只有成員列表可捲動，按鈕固定在畫面上 ── */
+html:has(.modal-overlay:not(.hidden)),
+body:has(.modal-overlay:not(.hidden)) { overflow: hidden; }   /* 防止滑動到後面的頁面 */
+.modal-overlay { overscroll-behavior: contain; }
+
+.modal-card-lg {
+  display: flex;
+  flex-direction: column;
+  max-height: calc(100vh - 3rem);
+  max-height: calc(100dvh - 3rem);
+  overflow: hidden;
 }
-body.calc-open .modal-card-lg { max-height: 100%; }
+.modal-card-lg > form {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  overflow-y: auto;            /* 螢幕極小時的保險 */
+  overscroll-behavior: contain;
+}
+.modal-card-lg > form > * { flex-shrink: 0; }
+.modal-card-lg > form > .splits-group {
+  flex-shrink: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+/* 全選列 + 三位成員的高度，其餘往下滑 */
+.splits-scroll {
+  min-height: 0;
+  max-height: calc(12.65rem + 8px);
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+.splits-scroll { position: relative; }
+/* 計算機開啟時只留正在編輯的那一列 */
+.splits-scroll.calc-active { max-height: none; }
+.splits-scroll.calc-active > .split-select-all-row,
+.splits-scroll.calc-active > .split-input-row:not(.calc-row) { display: none; }
+.splits-scroll .split-select-all-row {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  background: var(--card);
+}

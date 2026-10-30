@@ -1122,8 +1122,6 @@ function openCalc() {
   document.querySelectorAll(AMOUNT_SELECTOR).forEach(i => { i.readOnly = true; });
   calcPanel.classList.remove('hidden');
   calcToggle.classList.add('active');
-  document.body.style.setProperty('--calc-h', calcPanel.offsetHeight + 'px');
-  document.body.classList.add('calc-open');
   calcInput.blur();
   calcInput.focus();   // 重新聚焦會觸發 focusin → resetCalcFromInput
 }
@@ -1132,7 +1130,8 @@ function closeCalc() {
   if (!isCalcOpen()) return;
   calcPanel.classList.add('hidden');
   calcToggle.classList.remove('active');
-  document.body.classList.remove('calc-open');
+  document.querySelectorAll('.splits-scroll').forEach(el => el.classList.remove('calc-active'));
+  document.querySelectorAll('.calc-row').forEach(r => r.classList.remove('calc-row'));
   document.querySelectorAll(AMOUNT_SELECTOR).forEach(i => { i.readOnly = false; });
 }
 
@@ -1146,7 +1145,15 @@ function resetCalcFromInput() {
   calcExpr  = calcInput.value;
   calcFresh = true;
   renderCalc();
-  calcInput.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+  // 計算機直接接在正在編輯的那一列下方
+  (calcInput.closest('.split-input-row') || calcInput.closest('.total-input-row')).after(calcPanel);
+  // 計算機在成員列表裡時，列表放寬到剩餘空間，才放得下計算機
+  document.querySelectorAll('.splits-scroll').forEach(el => el.classList.toggle('calc-active', el.contains(calcPanel)));
+  document.querySelectorAll('.calc-row').forEach(r => r.classList.remove('calc-row'));
+  calcInput.closest('.split-input-row')?.classList.add('calc-row');
+  const list = calcPanel.closest('.splits-scroll');
+  if (list) list.scrollTop = 0;
+  else calcPanel.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
 }
 
 // 先乘除後加減；運算式只由按鍵組成，格式固定為「數字 運算子 數字…」

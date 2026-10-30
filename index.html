@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>分帳 App</title>
-  <link rel="stylesheet" href="style.css?v=21" />
+  <link rel="stylesheet" href="style.css?v=23" />
 </head>
 <body>
 
@@ -153,9 +153,9 @@
             <button type="button" id="split-evenly-btn" class="btn btn-ghost">一鍵平分</button>
           </div>
         </div>
-        <div class="form-group">
+        <div class="form-group splits-group">
           <label>選擇參與成員與分攤金額</label>
-          <div id="splits-table"></div>
+          <div id="splits-table" class="splits-scroll"></div>
         </div>
         <div id="add-expense-error" class="error-msg hidden"></div>
         <div class="modal-btns" style="margin-top:.75rem">
@@ -235,9 +235,9 @@
           <button type="button" id="edit-split-evenly-btn" class="btn btn-ghost">一鍵平分</button>
         </div>
       </div>
-      <div class="form-group">
+      <div class="form-group splits-group">
         <label>各人分攤金額</label>
-        <div id="edit-splits-table"></div>
+        <div id="edit-splits-table" class="splits-scroll"></div>
       </div>
       <div id="edit-expense-error" class="error-msg hidden"></div>
       <div class="modal-btns" style="margin-top:.75rem">
@@ -281,24 +281,24 @@
     <div id="calc-result" class="calc-result"></div>
   </div>
   <div class="calc-keys">
-    <button type="button" data-key="C" class="calc-fn">C</button>
-    <button type="button" data-key="back" class="calc-fn" aria-label="刪除">⌫</button>
-    <button type="button" data-key="÷" class="calc-op">÷</button>
-    <button type="button" data-key="×" class="calc-op">×</button>
     <button type="button" data-key="7">7</button>
     <button type="button" data-key="8">8</button>
     <button type="button" data-key="9">9</button>
-    <button type="button" data-key="-" class="calc-op">−</button>
+    <button type="button" data-key="÷" class="calc-op">÷</button>
+    <button type="button" data-key="C" class="calc-fn">C</button>
     <button type="button" data-key="4">4</button>
     <button type="button" data-key="5">5</button>
     <button type="button" data-key="6">6</button>
-    <button type="button" data-key="+" class="calc-op">+</button>
+    <button type="button" data-key="×" class="calc-op">×</button>
+    <button type="button" data-key="back" class="calc-fn" aria-label="刪除">⌫</button>
     <button type="button" data-key="1">1</button>
     <button type="button" data-key="2">2</button>
     <button type="button" data-key="3">3</button>
+    <button type="button" data-key="-" class="calc-op">−</button>
     <button type="button" data-key="=" class="calc-eq">=</button>
     <button type="button" data-key="0" class="calc-zero">0</button>
     <button type="button" data-key=".">.</button>
+    <button type="button" data-key="+" class="calc-op">+</button>
   </div>
 </div>
 
@@ -306,9 +306,9 @@
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
 
-<script src="js/firebase-config.js?v=21"></script>
-<script src="js/db.js?v=21"></script>
-<script src="js/settlement.js?v=21"></script>
-<script src="js/app.js?v=21"></script>
+<script src="js/firebase-config.js?v=23"></script>
+<script src="js/db.js?v=23"></script>
+<script src="js/settlement.js?v=23"></script>
+<script src="js/app.js?v=23"></script>
 </body>
 </html>
