@@ -477,22 +477,30 @@ function renderExpensesMembersBar() {
   }
 }
 
+// 快速切換分頁時可能同時有好幾次載入，只讓最後一次的結果畫到畫面上
+let expensesLoadSeq = 0;
+let settlementLoadSeq = 0;
+
 async function loadExpenses() {
+  const seq = ++expensesLoadSeq;
   $('expenses-loading').textContent = '載入中…';
   show('expenses-loading');
   hide('expenses-error');
   hide('expenses-empty');
   $('expenses-list').innerHTML = '';
   await loadMembers();
+  if (seq !== expensesLoadSeq) return;
   renderExpensesMembersBar();
 
   try {
     const expenses = await dbOps.getExpenses(currentTripCode);
+    if (seq !== expensesLoadSeq) return;
     hide('expenses-loading');
 
+    const container = $('expenses-list');
+    container.innerHTML = '';
     if (expenses.length === 0) { show('expenses-empty'); return; }
 
-    const container = $('expenses-list');
     expenses.forEach(exp => {
       const splits = exp.splits || [];
       const card = document.createElement('div');
@@ -518,6 +526,7 @@ async function loadExpenses() {
       container.appendChild(card);
     });
   } catch (err) {
+    if (seq !== expensesLoadSeq) return;
     hide('expenses-loading');
     setError('expenses-error', '載入失敗：' + err.message);
   }
@@ -744,6 +753,7 @@ $('add-expense-form').addEventListener('submit', async (e) => {
 // ── 結算 ─────────────────────────────────────────────────────
 
 async function loadSettlement() {
+  const seq = ++settlementLoadSeq;
   show('settle-loading');
   hide('settle-error');
   hide('settle-content');
@@ -753,6 +763,7 @@ async function loadSettlement() {
       dbOps.getExpenses(currentTripCode),
       dbOps.getSettlements(currentTripCode)
     ]);
+    if (seq !== settlementLoadSeq) return;
 
     // 把 splits 展開成扁平陣列（原格式與 settlement.js 相容）
     const splits = [];
@@ -771,6 +782,7 @@ async function loadSettlement() {
     renderSpending(memberNames, splits);
     renderSettlementHistory(settlements);
   } catch (err) {
+    if (seq !== settlementLoadSeq) return;
     hide('settle-loading');
     setError('settle-error', '載入失敗：' + err.message);
   }

@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>分帳 App</title>
-  <link rel="stylesheet" href="style.css?v=37" />
+  <link rel="stylesheet" href="style.css?v=38" />
 </head>
 <body>
 
@@ -114,6 +114,7 @@
 
   <!-- ── 帳目明細 Tab ── -->
   <div id="tab-expenses" class="tab-panel">
+    <div class="panel-top">
     <div class="panel-header">
       <h2>帳目明細</h2>
       <div class="panel-header-actions">
@@ -122,10 +123,13 @@
       </div>
     </div>
     <div id="expenses-members-bar" class="members-bar"></div>
-    <div id="expenses-loading" class="loading-msg">載入中…</div>
-    <div id="expenses-error" class="error-msg hidden"></div>
-    <div id="expenses-empty" class="empty-msg hidden">還沒有任何花費記錄</div>
-    <div id="expenses-list"></div>
+    </div>
+    <div class="panel-scroll">
+      <div id="expenses-loading" class="loading-msg">載入中…</div>
+      <div id="expenses-error" class="error-msg hidden"></div>
+      <div id="expenses-empty" class="empty-msg hidden">還沒有任何花費記錄</div>
+      <div id="expenses-list"></div>
+    </div>
   </div>
 
   <!-- ── 新增花費 Modal ── -->
@@ -168,10 +172,13 @@
 
   <!-- ── 結算 Tab ── -->
   <div id="tab-settle" class="tab-panel hidden">
+    <div class="panel-top">
     <div class="panel-header">
       <h2>結算</h2>
       <button id="refresh-settle-btn" class="btn btn-ghost btn-sm">重新整理</button>
     </div>
+    </div>
+    <div class="panel-scroll">
     <div id="settle-loading" class="loading-msg">計算中…</div>
     <div id="settle-error" class="error-msg hidden"></div>
     <div id="settle-content" class="hidden">
@@ -190,17 +197,22 @@
         <div id="spending-list"></div>
       </details>
     </div>
+    </div>
   </div>
 
   <!-- ── 成員 Tab ── -->
   <div id="tab-members" class="tab-panel hidden">
+    <div class="panel-top">
     <div class="panel-header"><h2>成員管理</h2></div>
     <div class="inline-form form-group">
       <input type="text" id="new-member-input" placeholder="輸入姓名，可用逗號分隔一次新增多名成員" maxlength="200" />
       <button id="add-member-btn" class="btn btn-primary">新增</button>
     </div>
     <div id="members-error" class="error-msg hidden"></div>
-    <div id="members-list"></div>
+    </div>
+    <div class="panel-scroll">
+      <div id="members-list"></div>
+    </div>
   </div>
 
 </div>
@@ -305,9 +317,9 @@
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
 
-<script src="js/firebase-config.js?v=37"></script>
-<script src="js/db.js?v=37"></script>
-<script src="js/settlement.js?v=37"></script>
-<script src="js/app.js?v=37"></script>
+<script src="js/firebase-config.js?v=38"></script>
+<script src="js/db.js?v=38"></script>
+<script src="js/settlement.js?v=38"></script>
+<script src="js/app.js?v=38"></script>
 </body>
 </html>

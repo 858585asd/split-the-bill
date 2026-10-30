@@ -804,3 +804,35 @@ body:has(.modal-overlay:not(.hidden)) { overflow: hidden; }   /* 防止滑動到
 .form-inline > .total-input-row { flex: 1; min-width: 0; }
 .btn-evenly { padding-left: .9rem; padding-right: .9rem; flex-shrink: 0; }
 .form-group + .calc-panel { margin: -.25rem 0 .65rem; }
+
+/* ── 出遊內頁：上方（導覽、Tab、各分頁標題列）固定，只有內容區捲動 ── */
+#screen-trip {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  height: 100dvh;
+}
+#screen-trip > .navbar,
+#screen-trip > .tab-bar { flex-shrink: 0; position: static; }
+#screen-trip > .tab-panel {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  max-width: none;
+  margin: 0;
+  padding: 0;
+}
+/* 內容維持置中 680px，捲軸在畫面邊緣 */
+.panel-top,
+.panel-scroll { padding-left: max(1rem, calc((100% - 680px) / 2 + 1rem)); padding-right: max(1rem, calc((100% - 680px) / 2 + 1rem)); }
+.panel-top { flex-shrink: 0; padding-top: 1.25rem; }
+.panel-top > :last-child { margin-bottom: 0; }
+.panel-scroll {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding-top: 1rem;
+  padding-bottom: 4rem;
+}
