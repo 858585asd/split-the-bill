@@ -788,3 +788,18 @@ body:has(.modal-overlay:not(.hidden)) { overflow: hidden; }   /* 防止滑動到
 .splits-scroll.calc-active .splits-rows { max-height: none; }
 .splits-scroll.calc-active > .split-select-all-row,
 .splits-scroll.calc-active .split-input-row:not(.calc-row) { display: none; }
+
+/* ── 手機鍵盤 ── */
+/* iOS 遇到字級小於 16px 的輸入框，聚焦時會自動放大整頁，放大後畫面就能滑動 */
+@media (pointer: coarse) {
+  input, select, textarea { font-size: 16px !important; }
+}
+/* 彈窗只佔鍵盤上方的可見區域（--vv-* 由 visualViewport 即時更新） */
+.modal-overlay {
+  inset: auto;
+  top: var(--vv-top, 0px);
+  left: 0;
+  right: 0;
+  height: var(--vv-height, 100%);
+}
+.modal-card-lg { max-height: calc(var(--vv-height, 100dvh) - 3rem); }

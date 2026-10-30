@@ -1227,3 +1227,15 @@ calcPanel.querySelector('.calc-keys').addEventListener('click', e => {
   renderCalc();
   writeCalcResult();
 });
+
+// ── 手機鍵盤彈出時，彈窗縮到鍵盤上方的可見範圍 ──────────────────
+if (window.visualViewport) {
+  const fitToVisualViewport = () => {
+    const vv = window.visualViewport;
+    document.documentElement.style.setProperty('--vv-height', vv.height + 'px');
+    document.documentElement.style.setProperty('--vv-top', vv.offsetTop + 'px');
+  };
+  visualViewport.addEventListener('resize', fitToVisualViewport);
+  visualViewport.addEventListener('scroll', fitToVisualViewport);
+  fitToVisualViewport();
+}
