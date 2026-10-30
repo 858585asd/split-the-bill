@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>分帳 App</title>
-  <link rel="stylesheet" href="style.css?v=20" />
+  <link rel="stylesheet" href="style.css?v=21" />
 </head>
 <body>
 
@@ -148,7 +148,7 @@
           <div class="total-input-row">
             <div class="split-input-wrap">
               <span class="currency-sign">$</span>
-              <input type="number" id="exp-total" placeholder="0" min="0" step="1" />
+              <input type="text" inputmode="decimal" id="exp-total" placeholder="0" autocomplete="off" />
             </div>
             <button type="button" id="split-evenly-btn" class="btn btn-ghost">一鍵平分</button>
           </div>
@@ -230,7 +230,7 @@
         <div class="total-input-row">
           <div class="split-input-wrap">
             <span class="currency-sign">$</span>
-            <input type="number" id="edit-exp-total" placeholder="0" min="0" step="1" />
+            <input type="text" inputmode="decimal" id="edit-exp-total" placeholder="0" autocomplete="off" />
           </div>
           <button type="button" id="edit-split-evenly-btn" class="btn btn-ghost">一鍵平分</button>
         </div>
@@ -274,13 +274,41 @@
 </div>
 
 <!-- Firebase SDK -->
+<!-- ── 計算機面板 ── -->
+<div id="calc-panel" class="calc-panel hidden" aria-label="計算機">
+  <div class="calc-display">
+    <div id="calc-expr" class="calc-expr"></div>
+    <div id="calc-result" class="calc-result"></div>
+  </div>
+  <div class="calc-keys">
+    <button type="button" data-key="C" class="calc-fn">C</button>
+    <button type="button" data-key="back" class="calc-fn" aria-label="刪除">⌫</button>
+    <button type="button" data-key="÷" class="calc-op">÷</button>
+    <button type="button" data-key="×" class="calc-op">×</button>
+    <button type="button" data-key="7">7</button>
+    <button type="button" data-key="8">8</button>
+    <button type="button" data-key="9">9</button>
+    <button type="button" data-key="-" class="calc-op">−</button>
+    <button type="button" data-key="4">4</button>
+    <button type="button" data-key="5">5</button>
+    <button type="button" data-key="6">6</button>
+    <button type="button" data-key="+" class="calc-op">+</button>
+    <button type="button" data-key="1">1</button>
+    <button type="button" data-key="2">2</button>
+    <button type="button" data-key="3">3</button>
+    <button type="button" data-key="=" class="calc-eq">=</button>
+    <button type="button" data-key="0" class="calc-zero">0</button>
+    <button type="button" data-key=".">.</button>
+  </div>
+</div>
+
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
 
-<script src="js/firebase-config.js?v=20"></script>
-<script src="js/db.js?v=20"></script>
-<script src="js/settlement.js?v=20"></script>
-<script src="js/app.js?v=20"></script>
+<script src="js/firebase-config.js?v=21"></script>
+<script src="js/db.js?v=21"></script>
+<script src="js/settlement.js?v=21"></script>
+<script src="js/app.js?v=21"></script>
 </body>
 </html>

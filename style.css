@@ -667,3 +667,80 @@ body {
   .transaction-row { flex-direction: column; align-items: flex-start; }
   .trips-header { padding: 1rem .75rem .75rem; }
 }
+
+/* ── 計算機 ── */
+.split-amount-wrap { display: flex; align-items: center; gap: .4rem; }
+
+.calc-toggle {
+  width: 2.3rem;
+  height: 2.3rem;
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  border: 2px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: var(--card);
+  color: var(--primary);
+  cursor: pointer;
+  touch-action: manipulation;
+}
+.calc-toggle svg { width: 1.2rem; height: 1.2rem; }
+.calc-toggle.active { background: var(--primary); border-color: var(--primary); color: #fff; }
+
+.calc-panel {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 600;
+  max-width: 500px;
+  margin: 0 auto;
+  background: var(--card);
+  border: 2px solid var(--border);
+  border-bottom: none;
+  border-radius: var(--radius) var(--radius) 0 0;
+  box-shadow: 0 -4px 20px rgba(100, 182, 172, 0.2);
+  padding: .6rem .75rem calc(.75rem + env(safe-area-inset-bottom));
+  user-select: none;
+  -webkit-user-select: none;
+}
+.calc-display { text-align: right; padding: .2rem .4rem .5rem; }
+.calc-expr {
+  font-size: 1.35rem;
+  font-weight: 700;
+  color: var(--text);
+  word-break: break-all;
+  min-height: 1.8rem;
+}
+.calc-result { font-size: .85rem; color: var(--text-sub); min-height: 1.15rem; }
+.calc-keys {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: .45rem;
+}
+.calc-keys button {
+  height: 2.7rem;
+  border: none;
+  border-radius: var(--radius-sm);
+  background: var(--accent2);
+  color: var(--text);
+  font-family: inherit;
+  font-size: 1.15rem;
+  font-weight: 700;
+  cursor: pointer;
+  touch-action: manipulation;
+}
+.calc-keys button:active { filter: brightness(.93); }
+.calc-keys .calc-op,
+.calc-keys .calc-fn   { background: var(--accent); color: var(--dark); }
+.calc-keys .calc-eq   { grid-row: span 2; height: auto; background: var(--primary); color: #fff; }
+.calc-keys .calc-zero { grid-column: span 2; }
+
+/* 計算機開啟時，表單往上讓出空間 */
+body.calc-open .modal-overlay {
+  align-items: flex-start;
+  padding-bottom: calc(var(--calc-h, 320px) + .75rem);
+}
+body.calc-open .modal-card-lg { max-height: 100%; }
