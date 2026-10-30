@@ -612,7 +612,6 @@ function renderSplitsTable() {
     checkbox.addEventListener('change', () => {
       if (checkbox.checked) {
         amountWrap.classList.remove('split-invisible');
-        amountInput.focus();
       } else {
         amountWrap.classList.add('split-invisible');
       }
@@ -943,7 +942,6 @@ function openEditExpense(exp) {
     checkbox.addEventListener('change', () => {
       if (checkbox.checked) {
         amountWrap.classList.remove('split-invisible');
-        amountInput.focus();
       } else {
         amountWrap.classList.add('split-invisible');
       }
@@ -1069,6 +1067,8 @@ const calcPanel = $('calc-panel');
 let calcInput = null;   // 目前編輯中的金額欄
 let calcExpr  = '';
 let calcFresh = true;   // 剛選到欄位時，按數字直接取代原本的值
+let calcOpenedAt = 0;   // 剛打開或換欄位的時間，短時間內忽略按鍵，避免畫面移動造成誤觸
+let tapStart = null;
 
 const isOperator = ch => ch !== '' && '+-×÷'.includes(ch);
 
@@ -1082,11 +1082,19 @@ document.addEventListener('focusin', e => {
   }
 });
 
-// 點金額欄開計算機（已聚焦的欄位不會再觸發 focusin，所以這裡也要處理）；
-// 點到金額欄、計算機以外的地方 → 關閉計算機
+// 只認「點一下」：手指放開且幾乎沒移動才算，滑動列表時不會開關計算機
 document.addEventListener('pointerdown', e => {
-  const t = e.target;
+  tapStart = { x: e.clientX, y: e.clientY, target: e.target };
+});
+document.addEventListener('pointercancel', () => { tapStart = null; });
+document.addEventListener('pointerup', e => {
+  if (!tapStart) return;
+  const { x, y, target: t } = tapStart;
+  tapStart = null;
+  if (Math.hypot(e.clientX - x, e.clientY - y) > 10) return;
+  // 點金額欄開計算機（已聚焦的欄位不會再觸發 focusin，所以這裡也要處理）
   if (t.matches?.(AMOUNT_SELECTOR)) { if (t !== calcInput) openCalc(t); return; }
+  // 點到金額欄、計算機以外的地方 → 關閉計算機
   if (calcInput && !t.closest('#calc-panel')) endAmountEditing();
 });
 
@@ -1112,18 +1120,20 @@ function openCalc(input) {
   calcExpr  = calcInput.value;
   calcFresh = true;
   renderCalc();
-  // 計算機直接接在正在編輯的那一列下方
-  (calcInput.closest('.split-input-row') || calcInput.closest('.form-group')).after(calcPanel);
+  calcOpenedAt = performance.now();
+
+  // 計算機直接接在正在編輯的那一列下方，並讓那一列留在原本的位置（手指底下不會換成別的東西）
+  const row = calcInput.closest('.split-input-row') || calcInput.closest('.form-group');
+  const rowTopBefore = row.getBoundingClientRect().top;
+  row.after(calcPanel);
   // 計算機在成員列表裡時，列表放寬到剩餘空間，其他成員仍可往下滑來點選
   document.querySelectorAll('.splits-scroll').forEach(el => el.classList.toggle('calc-active', el.contains(calcPanel)));
-  const list = calcPanel.closest('.splits-rows');
-  if (list) {
-    // 把正在編輯的那一列捲到列表頂端，計算機就完整出現在它下方
-    const row = calcInput.closest('.split-input-row');
-    list.scrollTop += row.getBoundingClientRect().top - list.getBoundingClientRect().top;
-  } else {
-    calcPanel.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
-  }
+  const scroller = calcPanel.closest('.splits-rows') || calcInput.closest('form');
+  scroller.scrollTop += row.getBoundingClientRect().top - rowTopBefore;
+
+  // 計算機下緣被切到時，平滑捲動補出來
+  const overflow = calcPanel.getBoundingClientRect().bottom - scroller.getBoundingClientRect().bottom;
+  if (overflow > 0) scroller.scrollBy({ top: overflow + 4, behavior: 'smooth' });
 }
 
 function endAmountEditing() {
@@ -1165,7 +1175,8 @@ function writeCalcResult() {
 
 calcPanel.querySelector('.calc-keys').addEventListener('click', e => {
   const key = e.target.closest('button')?.dataset.key;
-  if (key) pressCalcKey(key);
+  if (!key || performance.now() - calcOpenedAt < 450) return;
+  pressCalcKey(key);
 });
 
 function pressCalcKey(key) {
