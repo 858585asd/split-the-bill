@@ -1182,11 +1182,10 @@ function evalCalc(expr) {
   return Number.isFinite(result) ? Math.round(result) : null;
 }
 
+// 結果已即時寫在金額欄，這裡只在有運算時顯示算式
 function renderCalc() {
-  $('calc-expr').textContent = calcExpr.replace(/-/g, '−') || '0';
-  const result = evalCalc(calcExpr);
-  const hasOp = /[+\-×÷]/.test(calcExpr);
-  $('calc-result').textContent = hasOp && result !== null ? '= ' + result : '';
+  $('calc-expr').textContent = calcExpr.replace(/-/g, '−');
+  $('calc-display').classList.toggle('hidden', !/[+\-×÷]/.test(calcExpr));
 }
 
 // 每按一次就把目前結果寫回金額欄，觸發加總

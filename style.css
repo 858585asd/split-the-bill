@@ -717,7 +717,6 @@ body {
   word-break: break-all;
   text-align: right;
 }
-.calc-result { font-size: .9rem; color: var(--text-sub); white-space: nowrap; }
 .calc-keys {
   display: grid;
   grid-template-columns: repeat(5, 1fr);
