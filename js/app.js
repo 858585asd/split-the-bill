@@ -1089,7 +1089,7 @@ document.addEventListener('focusin', e => {
     t.closest('.split-input-wrap').before(calcToggle);
     t.select();
     selectOnMouseUp = t;
-    if (isCalcOpen()) resetCalcFromInput();
+    if (isCalcOpen()) closeCalc();   // 點數字欄 → 改用手機鍵盤輸入
   } else if (!calcPanel.contains(t) && t !== calcToggle) {
     endAmountEditing();
   }
@@ -1109,21 +1109,21 @@ document.addEventListener('pointerdown', e => {
   endAmountEditing();
 });
 
-// 按計算機時不要讓金額欄失去焦點
+// 按計算機時不要搶走焦點
 [calcPanel, calcToggle].forEach(el => el.addEventListener('pointerdown', e => e.preventDefault()));
 
 calcToggle.addEventListener('click', () => {
-  if (isCalcOpen()) { closeCalc(); calcInput?.focus(); } else { openCalc(); }
+  if (isCalcOpen()) { closeCalc(); calcInput?.focus(); }   // 收起計算機 → 叫出鍵盤
+  else openCalc();
 });
 
 function openCalc() {
   if (!calcInput) return;
-  // 唯讀可擋住手機鍵盤，數字改由計算機輸入
-  document.querySelectorAll(AMOUNT_SELECTOR).forEach(i => { i.readOnly = true; });
   calcPanel.classList.remove('hidden');
   calcToggle.classList.add('active');
-  calcInput.blur();
-  calcInput.focus();   // 重新聚焦會觸發 focusin → resetCalcFromInput
+  calcInput.closest('.split-input-wrap').classList.add('calc-target');
+  resetCalcFromInput();
+  calcInput.blur();   // 讓金額欄失去焦點，手機鍵盤就會收起來，改由計算機輸入
 }
 
 function closeCalc() {
@@ -1132,7 +1132,7 @@ function closeCalc() {
   calcToggle.classList.remove('active');
   document.querySelectorAll('.splits-scroll').forEach(el => el.classList.remove('calc-active'));
   document.querySelectorAll('.calc-row').forEach(r => r.classList.remove('calc-row'));
-  document.querySelectorAll(AMOUNT_SELECTOR).forEach(i => { i.readOnly = false; });
+  document.querySelectorAll('.calc-target').forEach(w => w.classList.remove('calc-target'));
 }
 
 function endAmountEditing() {

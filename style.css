@@ -321,7 +321,8 @@ body {
   width: 130px;
   transition: border-color .15s;
 }
-.split-input-wrap:focus-within { border-color: var(--primary); }
+.split-input-wrap:focus-within,
+.split-input-wrap.calc-target { border-color: var(--primary); }
 
 .currency-sign {
   padding: 0 .55rem;
