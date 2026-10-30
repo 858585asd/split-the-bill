@@ -295,7 +295,6 @@ body {
   font-weight: 700;
   color: var(--dark);
 }
-.split-select-all-row label { cursor: pointer; }
 .split-select-all-row input[type="checkbox"] { width: 1.4rem; height: 1.4rem; accent-color: var(--primary); cursor: pointer; }
 .split-input-row {
   display: grid;
@@ -772,7 +771,6 @@ body:has(.modal-overlay:not(.hidden)) { overflow: hidden; }   /* 防止滑動到
   max-height: calc(13.6rem + 8px);
   overflow-y: auto;
   overscroll-behavior: none;
-  -webkit-overflow-scrolling: touch;
 }
 
 /* 計算機開啟時列表放寬到彈窗剩餘空間，其他成員往下滑仍看得到 */

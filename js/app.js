@@ -581,7 +581,7 @@ function renderSplitsTable() {
   allRow.className = 'split-select-all-row';
   allRow.innerHTML = `
     <input type="checkbox" id="split-check-all" checked />
-    <label for="split-check-all">全選</label>
+    <span>全選</span>
   `;
   container.appendChild(allRow);
   // 只有成員列可捲動，全選列固定在上方
@@ -909,7 +909,7 @@ function openEditExpense(exp) {
   editAllRow.className = 'split-select-all-row';
   editAllRow.innerHTML = `
     <input type="checkbox" id="edit-split-check-all" />
-    <label for="edit-split-check-all">全選</label>
+    <span>全選</span>
   `;
   container.appendChild(editAllRow);
   const rowsBox = document.createElement('div');
@@ -1129,11 +1129,16 @@ function openCalc(input) {
   // 計算機在成員列表裡時，列表放寬到剩餘空間，其他成員仍可往下滑來點選
   document.querySelectorAll('.splits-scroll').forEach(el => el.classList.toggle('calc-active', el.contains(calcPanel)));
   const scroller = calcPanel.closest('.splits-rows') || calcInput.closest('form');
-  scroller.scrollTop += row.getBoundingClientRect().top - rowTopBefore;
 
-  // 計算機下緣被切到時，平滑捲動補出來
-  const overflow = calcPanel.getBoundingClientRect().bottom - scroller.getBoundingClientRect().bottom;
-  if (overflow > 0) scroller.scrollBy({ top: overflow + 4, behavior: 'smooth' });
+  // 一次算好最終捲動位置再設定（連續兩次捲動在 iOS 上會畫錯位置）
+  const box = scroller.getBoundingClientRect();
+  const toContent = y => y - box.top + scroller.scrollTop;   // 畫面座標 → 捲動內容座標
+  const rowRect = row.getBoundingClientRect();
+  const keepRow = scroller.scrollTop + rowRect.top - rowTopBefore;                     // 那一列留在原位
+  const showPanel = toContent(calcPanel.getBoundingClientRect().bottom) - scroller.clientHeight + 4; // 計算機完整露出
+  const rowAtTop = toContent(rowRect.top);                                             // 最多捲到那一列貼齊頂端
+  const maxScroll = scroller.scrollHeight - scroller.clientHeight;
+  scroller.scrollTop = Math.max(0, Math.min(Math.max(keepRow, showPanel), rowAtTop, maxScroll));
 }
 
 function endAmountEditing() {
