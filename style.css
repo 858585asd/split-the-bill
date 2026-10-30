@@ -775,10 +775,8 @@ body:has(.modal-overlay:not(.hidden)) { overflow: hidden; }   /* 防止滑動到
   -webkit-overflow-scrolling: touch;
 }
 
-/* 計算機開啟時只留正在編輯的那一列 */
+/* 計算機開啟時列表放寬到彈窗剩餘空間，其他成員往下滑仍看得到 */
 .splits-scroll.calc-active .splits-rows { max-height: none; }
-.splits-scroll.calc-active > .split-select-all-row,
-.splits-scroll.calc-active .split-input-row:not(.calc-row) { display: none; }
 
 /* ── 手機鍵盤 ── */
 /* iOS 遇到字級小於 16px 的輸入框，聚焦時會自動放大整頁，放大後畫面就能滑動 */

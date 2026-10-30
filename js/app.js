@@ -1114,20 +1114,22 @@ function openCalc(input) {
   renderCalc();
   // 計算機直接接在正在編輯的那一列下方
   (calcInput.closest('.split-input-row') || calcInput.closest('.form-group')).after(calcPanel);
-  // 計算機在成員列表裡時，只留正在編輯的那一列
+  // 計算機在成員列表裡時，列表放寬到剩餘空間，其他成員仍可往下滑來點選
   document.querySelectorAll('.splits-scroll').forEach(el => el.classList.toggle('calc-active', el.contains(calcPanel)));
-  document.querySelectorAll('.calc-row').forEach(r => r.classList.remove('calc-row'));
-  calcInput.closest('.split-input-row')?.classList.add('calc-row');
   const list = calcPanel.closest('.splits-rows');
-  if (list) list.scrollTop = 0;
-  else calcPanel.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+  if (list) {
+    // 把正在編輯的那一列捲到列表頂端，計算機就完整出現在它下方
+    const row = calcInput.closest('.split-input-row');
+    list.scrollTop += row.getBoundingClientRect().top - list.getBoundingClientRect().top;
+  } else {
+    calcPanel.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+  }
 }
 
 function endAmountEditing() {
   if (!calcInput) return;
   calcPanel.classList.add('hidden');
   document.querySelectorAll('.splits-scroll').forEach(el => el.classList.remove('calc-active'));
-  document.querySelectorAll('.calc-row').forEach(r => r.classList.remove('calc-row'));
   document.querySelectorAll('.calc-target').forEach(i => i.classList.remove('calc-target'));
   calcInput = null;
 }
