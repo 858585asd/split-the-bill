@@ -349,6 +349,7 @@ body {
   margin-bottom: .25rem;
 }
 .total-row span { font-weight: 700; color: var(--primary); font-size: 1.1rem; }
+.total-row span.mismatch { color: var(--danger-h); }
 
 /* ── 狀態訊息 ── */
 .loading-msg { color: var(--text-sub); font-size: .9rem; padding: 2rem 0; text-align: center; }

@@ -642,11 +642,39 @@ function renderSplitsTable() {
   });
 }
 
-function updateSplitsTotal() {
-  let total = 0;
-  document.querySelectorAll('.split-amount').forEach(i => { total += parseFloat(i.value) || 0; });
-  $('splits-total').textContent = formatMoney(total);
+// 加總各人分攤，並與總金額比對
+function renderSplitsSum(inputSelector, totalInputId, outputId) {
+  let sum = 0;
+  document.querySelectorAll(inputSelector).forEach(i => { sum += parseFloat(i.value) || 0; });
+  const total = parseFloat($(totalInputId).value) || 0;
+  const diff = Math.round(sum - total);
+  const out = $(outputId);
+  out.textContent = formatMoney(sum) + (total > 0 && diff !== 0
+    ? `（${diff > 0 ? '多' : '少'} ${formatMoney(Math.abs(diff))}）`
+    : '');
+  out.classList.toggle('mismatch', total > 0 && diff !== 0);
 }
+
+// 平分成整數金額，除不盡時隨機挑人 +1
+function splitEvenly(total, inputs) {
+  const n = inputs.length;
+  const totalInt = Math.round(total);
+  const base = Math.floor(totalInt / n);
+  const remainder = totalInt - base * n;
+  const order = [...inputs.keys()];
+  for (let i = order.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [order[i], order[j]] = [order[j], order[i]];
+  }
+  const lucky = new Set(order.slice(0, remainder));
+  inputs.forEach((input, i) => { input.value = base + (lucky.has(i) ? 1 : 0); });
+}
+
+function updateSplitsTotal() {
+  renderSplitsSum('.split-amount', 'exp-total', 'splits-total');
+}
+
+$('exp-total').addEventListener('input', updateSplitsTotal);
 
 async function renderAddExpenseForm() {
   $('exp-total').value = '';
@@ -666,13 +694,7 @@ $('split-evenly-btn').addEventListener('click', () => {
     .map(cb => cb.closest('.split-input-row').querySelector('.split-amount'));
   if (checkedInputs.length === 0) { setError('add-expense-error', '請先勾選參與成員'); return; }
 
-  const n = checkedInputs.length;
-  const baseCents = Math.floor(total * 100 / n);
-  const remainder = Math.round(total * 100) - baseCents * n;
-
-  checkedInputs.forEach((input, i) => {
-    input.value = ((i < remainder ? baseCents + 1 : baseCents) / 100).toFixed(0);
-  });
+  splitEvenly(total, checkedInputs);
   updateSplitsTotal();
 });
 
@@ -941,10 +963,10 @@ function openEditExpense(exp) {
 }
 
 function updateEditSplitsTotal() {
-  let total = 0;
-  document.querySelectorAll('.edit-split-amount').forEach(i => { total += parseFloat(i.value) || 0; });
-  $('edit-splits-total').textContent = formatMoney(total);
+  renderSplitsSum('.edit-split-amount', 'edit-exp-total', 'edit-splits-total');
 }
+
+$('edit-exp-total').addEventListener('input', updateEditSplitsTotal);
 
 $('edit-split-evenly-btn').addEventListener('click', () => {
   const total = parseFloat($('edit-exp-total').value);
@@ -955,13 +977,7 @@ $('edit-split-evenly-btn').addEventListener('click', () => {
     .map(cb => cb.closest('.split-input-row').querySelector('.edit-split-amount'));
   if (checkedInputs.length === 0) { setError('edit-expense-error', '請先勾選參與成員'); return; }
 
-  const n = checkedInputs.length;
-  const baseCents = Math.floor(total * 100 / n);
-  const remainder = Math.round(total * 100) - baseCents * n;
-
-  checkedInputs.forEach((input, i) => {
-    input.value = ((i < remainder ? baseCents + 1 : baseCents) / 100).toFixed(0);
-  });
+  splitEvenly(total, checkedInputs);
   updateEditSplitsTotal();
 });
 
