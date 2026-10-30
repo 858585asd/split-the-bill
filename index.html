@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>分帳 App</title>
-  <link rel="stylesheet" href="style.css?v=29" />
+  <link rel="stylesheet" href="style.css?v=33" />
 </head>
 <body>
 
@@ -133,24 +133,24 @@
     <div class="modal-card modal-card-lg">
       <h3 class="modal-title">新增花費</h3>
       <form id="add-expense-form">
-        <div class="form-group">
+        <div class="form-group form-inline">
           <label for="exp-description">項目名稱</label>
           <input type="text" id="exp-description" placeholder="例：晚餐、計程車" maxlength="100" required />
         </div>
-        <div class="form-group">
+        <div class="form-group form-inline">
           <label for="exp-payer">付款人</label>
           <select id="exp-payer" required>
             <option value="">請選擇付款人</option>
           </select>
         </div>
-        <div class="form-group">
+        <div class="form-group form-inline">
           <label for="exp-total">總金額</label>
           <div class="total-input-row">
             <div class="split-input-wrap">
               <span class="currency-sign">$</span>
-              <input type="text" inputmode="decimal" id="exp-total" placeholder="0" autocomplete="off" />
+              <input type="text" inputmode="none" readonly id="exp-total" placeholder="0" autocomplete="off" />
             </div>
-            <button type="button" id="split-evenly-btn" class="btn btn-ghost">一鍵平分</button>
+            <button type="button" id="split-evenly-btn" class="btn btn-ghost btn-evenly">平分</button>
           </div>
         </div>
         <div class="form-group splits-group">
@@ -215,24 +215,24 @@
   <div class="modal-card modal-card-lg">
     <h3 class="modal-title">編輯花費</h3>
     <form id="edit-expense-form">
-      <div class="form-group">
+      <div class="form-group form-inline">
         <label for="edit-exp-description">項目名稱</label>
         <input type="text" id="edit-exp-description" maxlength="100" required />
       </div>
-      <div class="form-group">
+      <div class="form-group form-inline">
         <label for="edit-exp-payer">付款人</label>
         <select id="edit-exp-payer" required>
           <option value="">請選擇付款人</option>
         </select>
       </div>
-      <div class="form-group">
+      <div class="form-group form-inline">
         <label for="edit-exp-total">總金額</label>
         <div class="total-input-row">
           <div class="split-input-wrap">
             <span class="currency-sign">$</span>
-            <input type="text" inputmode="decimal" id="edit-exp-total" placeholder="0" autocomplete="off" />
+            <input type="text" inputmode="none" readonly id="edit-exp-total" placeholder="0" autocomplete="off" />
           </div>
-          <button type="button" id="edit-split-evenly-btn" class="btn btn-ghost">一鍵平分</button>
+          <button type="button" id="edit-split-evenly-btn" class="btn btn-ghost btn-evenly">平分</button>
         </div>
       </div>
       <div class="form-group splits-group">
@@ -276,7 +276,7 @@
 <!-- Firebase SDK -->
 <!-- ── 計算機面板 ── -->
 <div id="calc-panel" class="calc-panel hidden" aria-label="計算機">
-  <div id="calc-display" class="calc-display hidden">
+  <div id="calc-display" class="calc-display">
     <div id="calc-expr" class="calc-expr"></div>
   </div>
   <div class="calc-keys">
@@ -305,9 +305,9 @@
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
 
-<script src="js/firebase-config.js?v=29"></script>
-<script src="js/db.js?v=29"></script>
-<script src="js/settlement.js?v=29"></script>
-<script src="js/app.js?v=29"></script>
+<script src="js/firebase-config.js?v=33"></script>
+<script src="js/db.js?v=33"></script>
+<script src="js/settlement.js?v=33"></script>
+<script src="js/app.js?v=33"></script>
 </body>
 </html>

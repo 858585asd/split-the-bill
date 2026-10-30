@@ -272,7 +272,13 @@ body {
   align-items: center;
 }
 .total-input-row .split-input-wrap { flex: 1; }
-.total-input-row .split-input-wrap input { width: 100%; }
+.total-input-row .split-input-wrap input {
+  width: 100%;
+  border: none;
+  border-radius: 0;
+  box-shadow: none;
+  padding: .45rem .6rem;
+}
 
 /* ── 分攤表格 ── */
 .panel-header-actions { display: flex; gap: .4rem; align-items: center; }
@@ -324,6 +330,8 @@ body {
 }
 .split-input-wrap:focus-within { border-color: var(--primary); }
 .split-input-wrap:has(.calc-target) { border-color: var(--primary); }
+/* 金額欄唯讀（用計算機輸入），游標維持一般輸入框的樣子 */
+.split-input-wrap input[readonly] { cursor: pointer; caret-color: transparent; }
 
 .currency-sign {
   padding: 0 .55rem;
@@ -675,23 +683,6 @@ body {
 /* ── 計算機 ── */
 .split-amount-wrap { display: flex; align-items: center; gap: .4rem; }
 
-.calc-toggle {
-  width: 2.3rem;
-  height: 2.3rem;
-  flex-shrink: 0;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  padding: 0;
-  border: 2px solid var(--border);
-  border-radius: var(--radius-sm);
-  background: var(--card);
-  color: var(--primary);
-  cursor: pointer;
-  touch-action: manipulation;
-}
-.calc-toggle svg { width: 1.2rem; height: 1.2rem; }
-.calc-toggle.active { background: var(--primary); border-color: var(--primary); color: #fff; }
 
 .calc-panel {
   margin: .35rem 0 0;
@@ -775,10 +766,10 @@ body:has(.modal-overlay:not(.hidden)) { overflow: hidden; }   /* 防止滑動到
 }
 .splits-scroll > .split-select-all-row { flex-shrink: 0; }
 
-/* 三位成員的高度，其餘往下滑；滑到底不會帶動全選列或後面的頁面 */
+/* 四位成員的高度，其餘往下滑；滑到底不會帶動全選列或後面的頁面 */
 .splits-rows {
   min-height: 0;
-  max-height: calc(10.2rem + 6px);
+  max-height: calc(13.6rem + 8px);
   overflow-y: auto;
   overscroll-behavior: none;
   -webkit-overflow-scrolling: touch;
@@ -803,3 +794,17 @@ body:has(.modal-overlay:not(.hidden)) { overflow: hidden; }   /* 防止滑動到
   height: var(--vv-height, 100%);
 }
 .modal-card-lg { max-height: calc(var(--vv-height, 100dvh) - 3rem); }
+
+/* ── 花費表單：標籤與欄位同一列 ── */
+.form-group.form-inline {
+  display: flex;
+  align-items: center;
+  gap: .6rem;
+  margin-bottom: .65rem;
+}
+.form-inline > label { flex: 0 0 3.6rem; margin-bottom: 0; }
+.form-inline > input,
+.form-inline > select,
+.form-inline > .total-input-row { flex: 1; min-width: 0; }
+.btn-evenly { padding-left: .9rem; padding-right: .9rem; flex-shrink: 0; }
+.form-group + .calc-panel { margin: -.25rem 0 .65rem; }
