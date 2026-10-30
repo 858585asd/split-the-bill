@@ -611,9 +611,8 @@ function renderSplitsTable() {
         amountInput.focus();
       } else {
         amountWrap.classList.add('split-invisible');
-        amountInput.value = '';
-        updateSplitsTotal();
       }
+      updateSplitsTotal();
       // 同步全選狀態
       const all = container.querySelectorAll('.split-checkbox');
       const checked = container.querySelectorAll('.split-checkbox:checked');
@@ -631,22 +630,25 @@ function renderSplitsTable() {
       if (cb.checked === checkAll.checked) return;
       cb.checked = checkAll.checked;
       const wrap  = cb.closest('.split-input-row').querySelector('.split-amount-wrap');
-      const input = cb.closest('.split-input-row').querySelector('.split-amount');
       if (checkAll.checked) {
         wrap.classList.remove('split-invisible');
       } else {
         wrap.classList.add('split-invisible');
-        input.value = '';
       }
     });
     updateSplitsTotal();
   });
 }
 
+// 取消勾選的成員保留已填金額，但不列入加總與送出
+function checkedAmountInputs(selector) {
+  return [...document.querySelectorAll(selector)].filter(i => !i.closest('.split-invisible'));
+}
+
 // 加總各人分攤，寫回總金額（都還沒填時保留手動輸入的總金額，供一鍵平分使用）
 function renderSplitsSum(inputSelector, totalInputId) {
   let sum = 0;
-  document.querySelectorAll(inputSelector).forEach(i => { sum += parseFloat(i.value) || 0; });
+  checkedAmountInputs(inputSelector).forEach(i => { sum += parseFloat(i.value) || 0; });
   if (sum > 0) $(totalInputId).value = Math.round(sum * 100) / 100;
 }
 
@@ -704,7 +706,7 @@ $('add-expense-form').addEventListener('submit', async (e) => {
   if (!total || total <= 0) { setError('add-expense-error', '請輸入總金額'); return; }
 
   const splits = [];
-  document.querySelectorAll('.split-amount').forEach(input => {
+  checkedAmountInputs('.split-amount').forEach(input => {
     const amount = parseFloat(input.value);
     if (amount > 0) splits.push({ person: input.dataset.person, amount: Math.round(amount * 100) / 100 });
   });
@@ -937,9 +939,8 @@ function openEditExpense(exp) {
         amountInput.focus();
       } else {
         amountWrap.classList.add('split-invisible');
-        amountInput.value = '';
-        updateEditSplitsTotal();
       }
+      updateEditSplitsTotal();
       const all     = container.querySelectorAll('.edit-split-checkbox');
       const checked = container.querySelectorAll('.edit-split-checkbox:checked');
       editCheckAll.indeterminate = checked.length > 0 && checked.length < all.length;
@@ -955,12 +956,10 @@ function openEditExpense(exp) {
       if (cb.checked === editCheckAll.checked) return;
       cb.checked = editCheckAll.checked;
       const wrap  = cb.closest('.split-input-row').querySelector('.split-amount-wrap');
-      const input = cb.closest('.split-input-row').querySelector('.edit-split-amount');
       if (editCheckAll.checked) {
         wrap.classList.remove('split-invisible');
       } else {
         wrap.classList.add('split-invisible');
-        input.value = '';
       }
     });
     updateEditSplitsTotal();
@@ -1007,7 +1006,7 @@ $('edit-expense-form').addEventListener('submit', async (e) => {
   if (!total || total <= 0) { setError('edit-expense-error', '請輸入總金額'); return; }
 
   const splits = [];
-  document.querySelectorAll('.edit-split-amount').forEach(input => {
+  checkedAmountInputs('.edit-split-amount').forEach(input => {
     const amount = parseFloat(input.value);
     if (amount > 0) splits.push({ person: input.dataset.person, amount: Math.round(amount * 100) / 100 });
   });
@@ -1089,7 +1088,7 @@ document.addEventListener('focusin', e => {
     t.closest('.split-input-wrap').before(calcToggle);
     t.select();
     selectOnMouseUp = t;
-    if (isCalcOpen()) closeCalc();   // 點數字欄 → 改用手機鍵盤輸入
+    if (isCalcOpen()) resetCalcFromInput();
   } else if (!calcPanel.contains(t) && t !== calcToggle) {
     endAmountEditing();
   }
@@ -1105,25 +1104,28 @@ document.addEventListener('mouseup', e => {
 document.addEventListener('pointerdown', e => {
   if (!calcInput) return;
   const t = e.target;
-  if (t.closest('#calc-panel, .calc-toggle') || t.matches(AMOUNT_SELECTOR)) return;
+  if (t.closest('#calc-panel, .calc-toggle')) return;
+  // 計算機開著時點金額欄 → 關計算機，讓這次點擊正常聚焦叫出鍵盤
+  if (t.matches(AMOUNT_SELECTOR)) { closeCalc(); return; }
   endAmountEditing();
 });
 
-// 按計算機時不要搶走焦點
+// 按計算機時不要讓金額欄失去焦點
 [calcPanel, calcToggle].forEach(el => el.addEventListener('pointerdown', e => e.preventDefault()));
 
 calcToggle.addEventListener('click', () => {
-  if (isCalcOpen()) { closeCalc(); calcInput?.focus(); }   // 收起計算機 → 叫出鍵盤
-  else openCalc();
+  if (isCalcOpen()) { closeCalc(); calcInput?.focus(); } else { openCalc(); }
 });
 
 function openCalc() {
   if (!calcInput) return;
+  // 收起手機鍵盤，數字改由計算機輸入；欄位設唯讀，避免再點到時又叫出鍵盤
+  document.querySelectorAll(AMOUNT_SELECTOR).forEach(i => { i.readOnly = true; i.inputMode = 'none'; });
+  calcInput.blur();
+  calcInput.classList.add('calc-target');
   calcPanel.classList.remove('hidden');
   calcToggle.classList.add('active');
-  calcInput.closest('.split-input-wrap').classList.add('calc-target');
   resetCalcFromInput();
-  calcInput.blur();   // 讓金額欄失去焦點，手機鍵盤就會收起來，改由計算機輸入
 }
 
 function closeCalc() {
@@ -1132,7 +1134,8 @@ function closeCalc() {
   calcToggle.classList.remove('active');
   document.querySelectorAll('.splits-scroll').forEach(el => el.classList.remove('calc-active'));
   document.querySelectorAll('.calc-row').forEach(r => r.classList.remove('calc-row'));
-  document.querySelectorAll('.calc-target').forEach(w => w.classList.remove('calc-target'));
+  document.querySelectorAll(AMOUNT_SELECTOR).forEach(i => { i.readOnly = false; i.inputMode = 'decimal'; });
+  document.querySelectorAll('.calc-target').forEach(i => i.classList.remove('calc-target'));
 }
 
 function endAmountEditing() {
