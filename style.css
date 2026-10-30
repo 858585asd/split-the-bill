@@ -349,7 +349,6 @@ body {
   margin-bottom: .25rem;
 }
 .total-row span { font-weight: 700; color: var(--primary); font-size: 1.1rem; }
-.total-row span.mismatch { color: var(--danger-h); }
 
 /* ── 狀態訊息 ── */
 .loading-msg { color: var(--text-sub); font-size: .9rem; padding: 2rem 0; text-align: center; }
@@ -455,6 +454,8 @@ body {
 .balance-amount.positive   { color: var(--success);  font-weight: 700; }
 .balance-amount.negative   { color: var(--danger-h); font-weight: 700; }
 .balance-amount.zero       { color: var(--text-sub); }
+.spending-total            { border-bottom: none; font-weight: 700; }
+.spending-total .balance-amount { color: var(--primary); }
 
 /* ── 還款紀錄 ── */
 .history-section {

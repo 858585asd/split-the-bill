@@ -642,17 +642,11 @@ function renderSplitsTable() {
   });
 }
 
-// 加總各人分攤，並與總金額比對
-function renderSplitsSum(inputSelector, totalInputId, outputId) {
+// 加總各人分攤，寫回總金額（都還沒填時保留手動輸入的總金額，供一鍵平分使用）
+function renderSplitsSum(inputSelector, totalInputId) {
   let sum = 0;
   document.querySelectorAll(inputSelector).forEach(i => { sum += parseFloat(i.value) || 0; });
-  const total = parseFloat($(totalInputId).value) || 0;
-  const diff = Math.round(sum - total);
-  const out = $(outputId);
-  out.textContent = formatMoney(sum) + (total > 0 && diff !== 0
-    ? `（${diff > 0 ? '多' : '少'} ${formatMoney(Math.abs(diff))}）`
-    : '');
-  out.classList.toggle('mismatch', total > 0 && diff !== 0);
+  if (sum > 0) $(totalInputId).value = Math.round(sum * 100) / 100;
 }
 
 // 平分成整數金額，除不盡時隨機挑人 +1
@@ -671,10 +665,8 @@ function splitEvenly(total, inputs) {
 }
 
 function updateSplitsTotal() {
-  renderSplitsSum('.split-amount', 'exp-total', 'splits-total');
+  renderSplitsSum('.split-amount', 'exp-total');
 }
-
-$('exp-total').addEventListener('input', updateSplitsTotal);
 
 async function renderAddExpenseForm() {
   $('exp-total').value = '';
@@ -769,6 +761,7 @@ async function loadSettlement() {
 
     renderTransactions(transactions);
     renderBalances(net);
+    renderSpending(memberNames, splits);
     renderSettlementHistory(settlements);
   } catch (err) {
     hide('settle-loading');
@@ -827,6 +820,19 @@ function renderBalances(net) {
     row.innerHTML = `<span class="balance-name">${escHtml(name)}</span><span class="balance-amount ${cls}">${label}</span>`;
     list.appendChild(row);
   });
+}
+
+// 每人在這趟旅程實際分攤到的花費
+function renderSpending(memberNames, splits) {
+  const list = $('spending-list');
+  list.innerHTML = '';
+  const spent = Object.fromEntries(memberNames.map(n => [n, 0]));
+  splits.forEach(s => { spent[s.person] = (spent[s.person] || 0) + s.amount; });
+  const rows = Object.entries(spent).map(([name, amount]) =>
+    `<div class="balance-row"><span class="balance-name">${escHtml(name)}</span><span class="balance-amount">${formatMoney(amount)}</span></div>`);
+  const total = Object.values(spent).reduce((a, b) => a + b, 0);
+  rows.push(`<div class="balance-row spending-total"><span class="balance-name">全部合計</span><span class="balance-amount">${formatMoney(total)}</span></div>`);
+  list.innerHTML = rows.join('');
 }
 
 function renderSettlementHistory(settlements) {
@@ -963,10 +969,9 @@ function openEditExpense(exp) {
 }
 
 function updateEditSplitsTotal() {
-  renderSplitsSum('.edit-split-amount', 'edit-exp-total', 'edit-splits-total');
+  renderSplitsSum('.edit-split-amount', 'edit-exp-total');
 }
 
-$('edit-exp-total').addEventListener('input', updateEditSplitsTotal);
 
 $('edit-split-evenly-btn').addEventListener('click', () => {
   const total = parseFloat($('edit-exp-total').value);

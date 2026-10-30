@@ -157,7 +157,6 @@
           <label>選擇參與成員與分攤金額</label>
           <div id="splits-table"></div>
         </div>
-        <div class="total-row">各人合計：<span id="splits-total">$0</span></div>
         <div id="add-expense-error" class="error-msg hidden"></div>
         <div class="modal-btns" style="margin-top:.75rem">
           <button type="button" id="add-expense-close-btn" class="btn btn-ghost">取消</button>
@@ -185,6 +184,10 @@
       <details class="history-section">
         <summary>各人餘額明細</summary>
         <div id="balance-list"></div>
+      </details>
+      <details class="history-section">
+        <summary>各人花費總額</summary>
+        <div id="spending-list"></div>
       </details>
     </div>
   </div>
@@ -236,7 +239,6 @@
         <label>各人分攤金額</label>
         <div id="edit-splits-table"></div>
       </div>
-      <div class="total-row">各人合計：<span id="edit-splits-total">$0</span></div>
       <div id="edit-expense-error" class="error-msg hidden"></div>
       <div class="modal-btns" style="margin-top:.75rem">
         <button type="button" id="edit-expense-cancel-btn" class="btn btn-ghost">取消</button>
