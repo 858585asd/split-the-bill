@@ -264,6 +264,12 @@ body {
 .inline-form { display: flex; gap: .5rem; align-items: stretch; }
 .inline-form input { flex: 1; margin-bottom: 0; }
 .inline-form .btn { align-self: stretch; }
+.inline-form:has(+ .input-hint) { margin-bottom: .35rem; }
+.input-hint { font-size: .8rem; color: var(--danger-h); margin-bottom: .25rem; }
+
+/* 提示文字斜體 */
+#new-member-input::placeholder,
+#exp-description::placeholder { font-style: italic; }
 
 /* ── 總金額列 ── */
 .total-input-row {
