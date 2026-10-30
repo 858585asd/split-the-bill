@@ -1083,13 +1083,15 @@ let calcOpenedAt = 0;   // 剛打開或換欄位的時間，短時間內忽略�
 let tapStart = null;
 
 const isOperator = ch => ch !== '' && '+-×÷'.includes(ch);
+const INTERACTIVE = 'button, a, input, select, textarea, label, summary';
 
-// 點到（或聚焦到）金額欄 → 計算機出現在那一列下方
+// 聚焦到金額欄 → 打開計算機；聚焦到其他輸入欄位 → 關閉計算機
+// （按鈕在手指按下時就會取得焦點，那時關閉會讓版面位移、按鈕跑掉，所以按鈕交給下面的 click 處理）
 document.addEventListener('focusin', e => {
   const t = e.target;
   if (t.matches?.(AMOUNT_SELECTOR)) {
     if (t !== calcInput) openCalc(t);
-  } else if (!calcPanel.contains(t)) {
+  } else if (t.matches?.('input, select, textarea') && !calcPanel.contains(t)) {
     endAmountEditing();
   }
 });
@@ -1106,8 +1108,15 @@ document.addEventListener('pointerup', e => {
   if (Math.hypot(e.clientX - x, e.clientY - y) > 10) return;
   // 點金額欄開計算機（已聚焦的欄位不會再觸發 focusin，所以這裡也要處理）
   if (t.matches?.(AMOUNT_SELECTOR)) { if (t !== calcInput) openCalc(t); return; }
-  // 點到金額欄、計算機以外的地方 → 關閉計算機
-  if (calcInput && !t.closest('#calc-panel')) endAmountEditing();
+  // 點到空白處 → 關閉計算機；點到按鈕等可操作元件則等它的 click 處理完再關
+  if (calcInput && !t.closest('#calc-panel, ' + INTERACTIVE)) endAmountEditing();
+});
+
+// 按鈕、勾選框等：先讓它自己的動作（儲存、平分…）跑完，冒泡到這裡才關計算機，版面才不會在點擊途中移動
+document.addEventListener('click', e => {
+  const t = e.target;
+  if (t.matches?.(AMOUNT_SELECTOR)) { if (t !== calcInput) openCalc(t); return; }
+  if (calcInput && t.closest?.(INTERACTIVE) && !t.closest('#calc-panel')) endAmountEditing();
 });
 
 // 按計算機時不要讓金額欄失去焦點
@@ -1116,11 +1125,10 @@ calcPanel.addEventListener('pointerdown', e => e.preventDefault());
 // 電腦上可以直接用實體鍵盤操作計算機
 document.addEventListener('keydown', e => {
   if (!calcInput || e.target !== calcInput || e.ctrlKey || e.metaKey || e.altKey) return;
-  const map = { '*': '×', 'x': '×', '/': '÷', 'Enter': '=', 'Backspace': 'back', 'Delete': 'C', 'Escape': 'esc' };
+  const map = { '*': '×', 'x': '×', '/': '÷', 'Enter': '=', 'Backspace': 'back', 'Escape': 'ok' };
   const key = /^[\d.+\-=]$/.test(e.key) ? e.key : map[e.key];
   if (!key) return;
   e.preventDefault();
-  if (key === 'esc') { calcInput.blur(); endAmountEditing(); return; }
   pressCalcKey(key);
 });
 
@@ -1155,7 +1163,11 @@ function openCalc(input) {
 
 function endAmountEditing() {
   if (!calcInput) return;
+  // 失去焦點，之後再點同一格會重新觸發 focusin
+  if (document.activeElement === calcInput) calcInput.blur();
   calcPanel.classList.add('hidden');
+  // 收回 body 底下，避免成員列表重畫時把計算機一起刪掉
+  document.body.appendChild(calcPanel);
   document.querySelectorAll('.splits-scroll').forEach(el => el.classList.remove('calc-active'));
   document.querySelectorAll('.calc-target').forEach(i => i.classList.remove('calc-target'));
   calcInput = null;
@@ -1179,7 +1191,7 @@ function evalCalc(expr) {
 
 // 顯示計算過程（結果已即時寫在金額欄）
 function renderCalc() {
-  $('calc-expr').textContent = calcExpr.replace(/-/g, '−') || '0';
+  calcPanel.querySelector('.calc-expr').textContent = calcExpr.replace(/-/g, '−') || '0';
 }
 
 // 每按一次就把目前結果寫回金額欄，觸發加總
@@ -1200,9 +1212,9 @@ function pressCalcKey(key) {
   if (!calcInput) return;
   const last = calcExpr.slice(-1);
 
-  if (key === 'C') {
-    calcExpr = '';
-    calcFresh = false;
+  if (key === 'ok') {   // ✓：完成，收起計算機
+    endAmountEditing();
+    return;
   } else if (key === 'back') {
     calcExpr = calcExpr.slice(0, -1);
     calcFresh = false;

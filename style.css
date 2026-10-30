@@ -591,9 +591,7 @@ body {
   flex-wrap: wrap;
   align-items: center;
   gap: .45rem;
-  padding: .65rem 0 .9rem;
-  border-bottom: 2px dashed var(--border);
-  margin-bottom: .75rem;
+  padding: .65rem 0 0;
   min-height: 2.5rem;
 }
 .member-chip {
@@ -729,6 +727,7 @@ body {
 .calc-keys .calc-fn   { background: var(--accent); color: var(--dark); }
 .calc-keys .calc-eq   { grid-row: span 2; height: auto; background: var(--primary); color: #fff; }
 .calc-keys .calc-zero { grid-column: span 2; }
+.calc-keys .calc-ok   { background: var(--primary); color: #fff; }
 
 /* ── 花費 Modal：只有成員列表可捲動，按鈕固定在畫面上 ── */
 html:has(.modal-overlay:not(.hidden)),
@@ -825,9 +824,29 @@ body:has(.modal-overlay:not(.hidden)) { overflow: hidden; }   /* 防止滑動到
 }
 /* 內容維持置中 680px，捲軸在畫面邊緣 */
 .panel-top,
-.panel-scroll { padding-left: max(1rem, calc((100% - 680px) / 2 + 1rem)); padding-right: max(1rem, calc((100% - 680px) / 2 + 1rem)); }
-.panel-top { flex-shrink: 0; padding-top: 1.25rem; }
-.panel-top > :last-child { margin-bottom: 0; }
+.panel-scroll {
+  --side: max(1rem, calc((100% - 680px) / 2 + 1rem));
+  padding-left: var(--side);
+  padding-right: var(--side);
+}
+.panel-top {
+  flex-shrink: 0;
+  padding-top: 1.25rem;
+  padding-bottom: .9rem;
+  position: relative;
+}
+/* 固定區與捲動區之間的虛線，寬度跟內容一樣 */
+.panel-top::after {
+  content: '';
+  position: absolute;
+  left: var(--side);
+  right: var(--side);
+  bottom: 0;
+  border-bottom: 2px dashed var(--border);
+}
+/* 固定區最後一個看得到的元件不留下邊距，虛線間距才一致 */
+.panel-top > :last-child,
+.panel-top > :has(+ .hidden:last-child) { margin-bottom: 0; }
 .panel-scroll {
   flex: 1;
   min-height: 0;
