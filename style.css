@@ -758,7 +758,7 @@ body:has(.modal-overlay:not(.hidden)) { overflow: hidden; }   /* 防止滑動到
   flex-direction: column;
   min-height: 0;
   overflow-y: auto;            /* 螢幕極小時的保險 */
-  overscroll-behavior: contain;
+  overscroll-behavior: none;
 }
 .modal-card-lg > form > * { flex-shrink: 0; }
 .modal-card-lg > form > .splits-group {
@@ -771,18 +771,21 @@ body:has(.modal-overlay:not(.hidden)) { overflow: hidden; }   /* 防止滑動到
 /* 全選列 + 三位成員的高度，其餘往下滑 */
 .splits-scroll {
   min-height: 0;
-  max-height: calc(12.65rem + 8px);
+  display: flex;
+  flex-direction: column;
+}
+.splits-scroll > .split-select-all-row { flex-shrink: 0; }
+
+/* 三位成員的高度，其餘往下滑；滑到底不會帶動全選列或後面的頁面 */
+.splits-rows {
+  min-height: 0;
+  max-height: calc(10.2rem + 6px);
   overflow-y: auto;
-  overscroll-behavior: contain;
+  overscroll-behavior: none;
+  -webkit-overflow-scrolling: touch;
 }
-.splits-scroll { position: relative; }
+
 /* 計算機開啟時只留正在編輯的那一列 */
-.splits-scroll.calc-active { max-height: none; }
+.splits-scroll.calc-active .splits-rows { max-height: none; }
 .splits-scroll.calc-active > .split-select-all-row,
-.splits-scroll.calc-active > .split-input-row:not(.calc-row) { display: none; }
-.splits-scroll .split-select-all-row {
-  position: sticky;
-  top: 0;
-  z-index: 1;
-  background: var(--card);
-}
+.splits-scroll.calc-active .split-input-row:not(.calc-row) { display: none; }

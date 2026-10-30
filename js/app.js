@@ -584,6 +584,10 @@ function renderSplitsTable() {
     <label for="split-check-all">全選</label>
   `;
   container.appendChild(allRow);
+  // 只有成員列可捲動，全選列固定在上方
+  const rowsBox = document.createElement('div');
+  rowsBox.className = 'splits-rows';
+  container.appendChild(rowsBox);
   const checkAll = allRow.querySelector('#split-check-all');
 
   // 成員列（預設全選）
@@ -621,7 +625,7 @@ function renderSplitsTable() {
     });
 
     amountInput.addEventListener('input', updateSplitsTotal);
-    container.appendChild(row);
+    rowsBox.appendChild(row);
   });
 
   // 全選控制
@@ -909,6 +913,9 @@ function openEditExpense(exp) {
     <label for="edit-split-check-all">全選</label>
   `;
   container.appendChild(editAllRow);
+  const rowsBox = document.createElement('div');
+  rowsBox.className = 'splits-rows';
+  container.appendChild(rowsBox);
   const editCheckAll = editAllRow.querySelector('#edit-split-check-all');
   editCheckAll.checked = preCheckedCount === members.length;
   editCheckAll.indeterminate = preCheckedCount > 0 && preCheckedCount < members.length;
@@ -948,7 +955,7 @@ function openEditExpense(exp) {
     });
 
     amountInput.addEventListener('input', updateEditSplitsTotal);
-    container.appendChild(row);
+    rowsBox.appendChild(row);
   });
 
   editCheckAll.addEventListener('change', () => {
@@ -1154,7 +1161,7 @@ function resetCalcFromInput() {
   document.querySelectorAll('.splits-scroll').forEach(el => el.classList.toggle('calc-active', el.contains(calcPanel)));
   document.querySelectorAll('.calc-row').forEach(r => r.classList.remove('calc-row'));
   calcInput.closest('.split-input-row')?.classList.add('calc-row');
-  const list = calcPanel.closest('.splits-scroll');
+  const list = calcPanel.closest('.splits-rows');
   if (list) list.scrollTop = 0;
   else calcPanel.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
 }
