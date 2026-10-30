@@ -592,7 +592,7 @@ function renderSplitsTable() {
     row.className = 'split-input-row';
     row.innerHTML = `
       <input type="checkbox" class="split-checkbox" id="split-cb-${i}" checked />
-      <label class="split-label" for="split-cb-${i}">${escHtml(m.name)}</label>
+      <span class="split-label">${escHtml(m.name)}</span>
       <div class="split-amount-wrap">
         <div class="split-input-wrap">
           <span class="currency-sign">$</span>
@@ -919,7 +919,7 @@ function openEditExpense(exp) {
     row.className = 'split-input-row';
     row.innerHTML = `
       <input type="checkbox" class="edit-split-checkbox" id="edit-split-cb-${i}" ${preChecked ? 'checked' : ''} />
-      <label class="split-label" for="edit-split-cb-${i}">${escHtml(m.name)}</label>
+      <span class="split-label">${escHtml(m.name)}</span>
       <div class="split-amount-wrap${preChecked ? '' : ' split-invisible'}">
         <div class="split-input-wrap">
           <span class="currency-sign">$</span>

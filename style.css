@@ -303,14 +303,15 @@ body {
   visibility: hidden;
   pointer-events: none;
 }
-.split-checkbox {
+.split-checkbox,
+.edit-split-checkbox {
   width: 1.4rem;
   height: 1.4rem;
   accent-color: var(--primary);
   cursor: pointer;
   flex-shrink: 0;
 }
-.split-label { font-size: .9rem; color: var(--text); cursor: pointer; }
+.split-label { font-size: .9rem; color: var(--text); }
 
 .split-input-wrap {
   display: flex;
@@ -332,7 +333,8 @@ body {
   border-right: 2px solid var(--border);
   line-height: 2.3;
 }
-.split-amount {
+.split-amount,
+.edit-split-amount {
   border: none !important;
   padding: .45rem .5rem !important;
   width: 80px;
@@ -340,7 +342,8 @@ body {
   font-size: .95rem;
   box-shadow: none !important;
 }
-.split-amount:focus { outline: none; }
+.split-amount:focus,
+.edit-split-amount:focus { outline: none; }
 
 .total-row {
   text-align: right;
